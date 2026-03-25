@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio — Stockify</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/modal.css">
+  <style>
+    .sell-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(6px);
+      z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+    .sell-overlay.open { opacity: 1; pointer-events: all; }
+
+    .sell-popup {
+      background: #141C2E;
+      border: 1px solid rgba(99,140,220,0.28);
+      border-radius: 20px;
+      width: 420px; max-width: calc(100vw - 32px);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+      transform: scale(0.92) translateY(14px);
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+      overflow: hidden;
+    }
+    .sell-overlay.open .sell-popup { transform: scale(1) translateY(0); }
+
+    .sell-popup-header {
+      background: linear-gradient(135deg, rgba(242,83,106,0.14), rgba(139,92,246,0.08));
+      border-bottom: 1px solid rgba(242,83,106,0.2);
+      padding: 20px 22px;
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .sell-popup-symbol { font-size: 1.4rem; font-weight: 800; letter-spacing: 0.04em; color: #E8EDF8; }
+    .sell-popup-sector { font-size: 0.72rem; color: #9C7C2E; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
+    .sell-popup-close  {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(99,140,220,0.14);
+      color: #7B8BAD; font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0;
+    }
+    .sell-popup-close:hover { color: #F2536A; border-color: rgba(242,83,106,0.3); }
+
+    .sell-price-row {
+      display: flex; gap: 0;
+      border-bottom: 1px solid rgba(99,140,220,0.1);
+    }
+    .sell-price-cell {
+      flex: 1; padding: 14px 18px;
+      border-right: 1px solid rgba(99,140,220,0.1);
+    }
+    .sell-price-cell:last-child { border-right: none; }
+    .sell-price-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #7B8BAD; margin-bottom: 5px; }
+    .sell-price-value { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 600; color: #E8EDF8; }
+
+    .sell-popup-body { padding: 20px 22px; }
+
+    .sell-qty-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #7B8BAD; margin-bottom: 8px; }
+    .sell-qty-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .sell-qty-btn {
+      width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+      background: rgba(99,140,220,0.1); border: 1px solid rgba(99,140,220,0.2);
+      color: #E8EDF8; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.18s;
+    }
+    .sell-qty-btn:hover { background: rgba(99,140,220,0.2); border-color: rgba(99,140,220,0.4); }
+    .sell-qty-input {
+      flex: 1; background: #0F1623; border: 1px solid rgba(99,140,220,0.28);
+      color: #E8EDF8; font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem; font-weight: 700; text-align: center;
+      padding: 9px 12px; border-radius: 9px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .sell-qty-input:focus { border-color: #F2536A; }
+
+    .sell-presets { display: flex; gap: 7px; margin-bottom: 16px; flex-wrap: wrap; }
+    .sell-preset-btn {
+      font-size: 0.72rem; font-weight: 700; padding: 5px 12px;
+      background: rgba(99,140,220,0.08); border: 1px solid rgba(99,140,220,0.18);
+      color: #7B8BAD; border-radius: 20px; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .sell-preset-btn:hover, .sell-preset-btn.active {
+      background: rgba(242,83,106,0.12); border-color: rgba(242,83,106,0.35); color: #F2536A;
+    }
+
+    .sell-pnl-card {
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+      border: 1px solid rgba(99,140,220,0.15);
+      background: rgba(0,0,0,0.2);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .sell-pnl-card.profit { border-color: rgba(45,212,138,0.35); background: rgba(45,212,138,0.06); }
+    .sell-pnl-card.loss   { border-color: rgba(242,83,106,0.35); background: rgba(242,83,106,0.06); }
+
+    .sell-pnl-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; padding: 3px 0; }
+    .sell-pnl-key { color: #7B8BAD; }
+    .sell-pnl-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #E8EDF8; }
+    .sell-pnl-total {
+      display: flex; justify-content: space-between; align-items: center;
+      border-top: 1px solid rgba(99,140,220,0.12); margin-top: 8px; padding-top: 8px;
+      font-size: 1rem; font-weight: 700;
+    }
+    .sell-pnl-total-val { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; }
+    .profit-color { color: #2DD48A; }
+    .loss-color   { color: #F2536A; }
+
+    .pnl-loading { color: #3E4D6C; font-size: 0.8rem; text-align: center; padding: 10px; font-style: italic; }
+
+    .sell-confirm-btn {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff; font-family: 'Inter', sans-serif;
+      font-size: 0.95rem; font-weight: 800; letter-spacing: 0.04em;
+      text-transform: uppercase; border: none; border-radius: 12px;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(239,68,68,0.3);
+    }
+    .sell-confirm-btn:hover   { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(239,68,68,0.45); }
+    .sell-confirm-btn:active  { transform: scale(0.98); }
+    .sell-confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .holding-list-card {
+      padding: 13px; border: 1px solid var(--border);
+      border-radius: 12px; cursor: pointer;
+      transition: all 0.22s; margin-bottom: 8px;
+      position: relative;
+    }
+    .holding-list-card:hover {
+      border-color: rgba(242,83,106,0.4);
+      background: rgba(242,83,106,0.05);
+      transform: translateX(3px);
+    }
+    .holding-list-card:hover .sell-hint { opacity: 1; }
+    .sell-hint {
+      position: absolute; bottom: 8px; right: 10px;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: #F2536A;
+      opacity: 0; transition: opacity 0.2s;
+    }
+  </style>
+</head>
+<body>
+
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <h1>Stockify</h1>
+      <span>Smart Stock Recommender</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="portfolio.html" class="active"><span class="nav-icon">💼</span> Portfolio</a>
+      <a href="watchlist.html"><span class="nav-icon">👁️</span> Watchlist</a>
+      <a href="history.html"><span class="nav-icon">🧾</span> Transactions</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">S</div>
+        <div>
+          <div class="user-name" id="displayUsername">Investor</div>
+          <div class="user-role">Investor</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">⏻ Logout</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <div class="page-header">
+      <div>
+        <h1>Portfolio</h1>
+        <p class="greeting" id="greetingText">Your holdings, performance and market overview.</p>
+      </div>
+      <div class="risk-selector">
+        <label for="riskProfile">Risk Level:</label>
+        <select id="riskProfile">
+          <option value="Beginner">Beginner (Low Risk)</option>
+          <option value="Intermediate" selected>Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="stats-row stagger-in" id="statsRow">
+      <div class="stat-card">
+        <div class="stat-value" id="statValue" style="color:var(--accent-primary);">—</div>
+        <div class="stat-label">Portfolio Value</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statInvested">—</div>
+        <div class="stat-label">Total Invested</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--accent-green);">
+        <div class="stat-value" id="statReturn" style="color:var(--accent-green);">—</div>
+        <div class="stat-label">Overall Return</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--accent-blue);">
+        <div class="stat-value" id="statDaily" style="color:var(--accent-blue);">—</div>
+        <div class="stat-label">Today's P&amp;L</div>
+      </div>
+    </div>
+
+    <div class="market-dashboard-layout" style="display:grid;grid-template-columns:260px 1fr 260px;gap:20px;margin-bottom:30px;">
+
+      <div class="dash-card watchlist-panel" style="display:flex;flex-direction:column;gap:12px;padding:20px;max-height:520px;overflow-y:auto;">
+        <div class="card-title" style="margin-bottom:4px;">Your Holdings</div>
+        <div id="holdingsList">
+          <div class="skeleton" style="height:80px;margin-bottom:10px;"></div>
+          <div class="skeleton" style="height:80px;margin-bottom:10px;"></div>
+          <div class="skeleton" style="height:80px;"></div>
+        </div>
+      </div>
+
+      <div class="dash-card chart-panel" style="padding:22px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;">
+          <div>
+            <h2 style="margin:0;font-size:1.4rem;" id="chartSymbolLabel">RELIANCE</h2>
+            <p style="color:var(--text-muted);font-size:0.78rem;margin:4px 0 0;">NSE — Click a holding to change chart</p>
+          </div>
+        </div>
+        <div style="position:relative;height:390px;width:100%;">
+          <div class="tradingview-widget-container" style="height:100%;width:100%;">
+            <div id="tradingview_portfolio" style="height:100%;width:100%;"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+            <script type="text/javascript">
+              window._tvWidget = new TradingView.widget({
+                autosize: true,
+                symbol: "NSE:RELIANCE",
+                interval: "D",
+                timezone: "Asia/Kolkata",
+                theme: "dark",
+                style: "1",
+                locale: "en",
+                enable_publishing: false,
+                backgroundColor: "rgba(20, 28, 46, 1)",
+                gridColor: "rgba(255,255,255,0.04)",
+                hide_top_toolbar: false,
+                hide_legend: false,
+                save_image: false,
+                container_id: "tradingview_portfolio"
+              });
+
+              window.changeChart = function(nseSymbol) {
+                const el = document.getElementById("tradingview_portfolio");
+                el.innerHTML = "";
+                window._tvWidget = new TradingView.widget({
+                  autosize: true,
+                  symbol: "NSE:" + nseSymbol,
+                  interval: "D",
+                  timezone: "Asia/Kolkata",
+                  theme: "dark",
+                  style: "1",
+                  locale: "en",
+                  enable_publishing: false,
+                  backgroundColor: "rgba(20, 28, 46, 1)",
+                  gridColor: "rgba(255,255,255,0.04)",
+                  save_image: false,
+                  container_id: "tradingview_portfolio"
+                });
+                document.getElementById("chartSymbolLabel").textContent = nseSymbol;
+              };
+            </script>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card markets-panel" style="padding:22px;">
+        <div class="card-title" style="margin-bottom:22px;">🌐 Global Markets</div>
+        <div style="display:flex;flex-direction:column;gap:20px;font-size:0.85rem;">
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">India</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+              <div>NIFTY 50<div style="font-size:0.72rem;color:var(--text-muted);">NSE</div></div>
+              <div style="text-align:right;font-family:var(--mono);">22,400<div style="font-size:0.72rem;color:var(--accent-green);">+0.64%</div></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <div>SENSEX<div style="font-size:0.72rem;color:var(--text-muted);">BSE</div></div>
+              <div style="text-align:right;font-family:var(--mono);">73,828<div style="font-size:0.72rem;color:var(--accent-green);">+0.58%</div></div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border);"></div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">United States</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+              <div>S&amp;P 500<div style="font-size:0.72rem;color:var(--text-muted);">SPX</div></div>
+              <div style="text-align:right;font-family:var(--mono);">5,120<div style="font-size:0.72rem;color:var(--accent-green);">+0.52%</div></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <div>NASDAQ<div style="font-size:0.72rem;color:var(--text-muted);">COMP</div></div>
+              <div style="text-align:right;font-family:var(--mono);">16,797<div style="font-size:0.72rem;color:var(--accent-green);">+1.20%</div></div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border);"></div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Asia Pacific</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+              <div>Nikkei 225<div style="font-size:0.72rem;color:var(--text-muted);">N225</div></div>
+              <div style="text-align:right;font-family:var(--mono);">38,367<div style="font-size:0.72rem;color:var(--accent-red);">-0.49%</div></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <div>Hang Seng<div style="font-size:0.72rem;color:var(--text-muted);">HSI</div></div>
+              <div style="text-align:right;font-family:var(--mono);">17,212<div style="font-size:0.72rem;color:var(--accent-red);">-0.31%</div></div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border);"></div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Europe</div>
+            <div style="display:flex;justify-content:space-between;">
+              <div>FTSE 100<div style="font-size:0.72rem;color:var(--text-muted);">FTSE</div></div>
+              <div style="text-align:right;font-family:var(--mono);">8,139<div style="font-size:0.72rem;color:var(--accent-green);">+0.42%</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Performance</div>
+
+    <div class="dash-card full-width scroll-anim" style="margin-bottom:22px;padding:24px;">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:18px;">Portfolio Performance vs NIFTY 50</div>
+      <div style="height:280px;width:100%;position:relative;">
+        <canvas id="portfolioChart" style="width:100%;height:100%;"></canvas>
+      </div>
+      <div style="display:flex;justify-content:center;gap:24px;margin-top:16px;font-size:0.82rem;font-weight:700;">
+        <span style="color:#8b5cf6;">─ Your Portfolio</span>
+        <span style="color:#10b981;">─ NIFTY 50</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:20px;margin-bottom:36px;">
+
+      <div class="dash-card scroll-anim" style="padding:22px;">
+        <div class="card-title">Performance Summary</div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:18px;">
+          <div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">Total Return</div>
+            <div class="stat-value" id="perfReturn" style="color:var(--accent-green);">—</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">Total Invested</div>
+            <div class="stat-value" id="perfInvested">—</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">Current Value</div>
+            <div class="stat-value" id="perfValue">—</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">Absolute Gain / Loss</div>
+            <div class="stat-value" id="perfAbsolute" style="color:var(--accent-green);">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card scroll-anim" style="padding:22px;">
+        <div class="card-title">Sector Allocation</div>
+        <div id="sectorBars" style="margin-top:18px;display:flex;flex-direction:column;gap:14px;">
+          <div class="skeleton" style="height:24px;"></div>
+          <div class="skeleton" style="height:24px;"></div>
+          <div class="skeleton" style="height:24px;"></div>
+          <div class="skeleton" style="height:24px;"></div>
+        </div>
+      </div>
+
+      <div class="dash-card scroll-anim" style="padding:22px;">
+        <div class="card-title">Monthly Returns (%)</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px;text-align:center;" id="monthlyReturns">
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Jan</div><div style="color:var(--accent-green);font-size:0.88rem;font-weight:700;">+2.81%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Feb</div><div style="color:var(--accent-green);font-size:0.88rem;font-weight:700;">+3.60%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Mar</div><div style="color:var(--accent-green);font-size:0.88rem;font-weight:700;">+3.05%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Apr</div><div style="color:var(--accent-green);font-size:0.88rem;font-weight:700;">+1.58%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">May</div><div style="color:var(--accent-red);font-size:0.88rem;font-weight:700;">-0.20%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Jun</div><div style="color:var(--accent-green);font-size:0.88rem;font-weight:700;">+3.87%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Jul</div><div style="color:var(--accent-green);font-size:0.88rem;font-weight:700;">+0.21%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Aug</div><div style="color:var(--accent-green);font-size:0.88rem;font-weight:700;">+1.29%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Sep</div><div style="color:var(--accent-red);font-size:0.88rem;font-weight:700;">-0.90%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Oct</div><div style="color:var(--accent-red);font-size:0.88rem;font-weight:700;">-0.11%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Nov</div><div style="color:var(--accent-red);font-size:0.88rem;font-weight:700;">-0.87%</div></div>
+          <div><div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Dec</div><div style="color:var(--accent-green);font-size:0.88rem;font-weight:700;">+1.90%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="recommendations-section" style="margin-top:36px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.05);">
+      <div class="section-title">Top AI Recommendations</div>
+      <div id="recList" class="rec-list"></div>
+    </div>
+
+    <div id="alerts-section" style="margin-top:36px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.05);">
+      <div class="section-title" style="color:var(--accent-red);">
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span style="display:inline-block;width:4px;height:18px;background:var(--accent-red);border-radius:3px;"></span>
+          Risk Alerts &amp; Priority Sell Signals
+        </span>
+      </div>
+      <div id="alertList" class="alert-list"></div>
+    </div>
+
+  </main>
+
+  <!-- SELL / BUY POPUP -->
+  <div class="sell-overlay" id="sellOverlay">
+    <div class="sell-popup" id="sellPopup">
+
+      <div class="sell-popup-header">
+        <div>
+          <div class="sell-popup-symbol" id="spSymbol">—</div>
+          <div class="sell-popup-sector" id="spSector">—</div>
+        </div>
+        <button class="sell-popup-close" onclick="closeSellPopup()">✕</button>
+      </div>
+
+      <div class="sell-price-row">
+        <div class="sell-price-cell">
+          <div class="sell-price-label">Live Price</div>
+          <div class="sell-price-value" id="spLivePrice">—</div>
+        </div>
+        <div class="sell-price-cell">
+          <div class="sell-price-label">Avg Buy Price</div>
+          <div class="sell-price-value" id="spAvgBuy">—</div>
+        </div>
+        <div class="sell-price-cell">
+          <div class="sell-price-label">You Own</div>
+          <div class="sell-price-value" id="spOwned">—</div>
+        </div>
+      </div>
+
+      <div class="sell-popup-body">
+
+        <div class="sell-qty-label">Quantity</div>
+        <div class="sell-qty-row">
+          <button class="sell-qty-btn" onclick="adjustQty(-1)">−</button>
+          <input class="sell-qty-input" type="number" id="spQty" min="1" value="1"
+                 oninput="onQtyChange()">
+          <button class="sell-qty-btn" onclick="adjustQty(1)">+</button>
+        </div>
+
+        <div class="sell-presets" id="spPresets"></div>
+
+        <div class="sell-pnl-card" id="spPnlCard">
+          <div class="pnl-loading" id="spPnlLoading">Enter quantity to see P&amp;L preview</div>
+          <div id="spPnlContent" style="display:none;">
+            <div class="sell-pnl-row">
+              <span class="sell-pnl-key">Sell Proceeds</span>
+              <span class="sell-pnl-val" id="spProceeds">—</span>
+            </div>
+            <div class="sell-pnl-row">
+              <span class="sell-pnl-key">Cost Basis</span>
+              <span class="sell-pnl-val" id="spCostBasis">—</span>
+            </div>
+            <div class="sell-pnl-row">
+              <span class="sell-pnl-key">Shares Remaining After</span>
+              <span class="sell-pnl-val" id="spRemaining">—</span>
+            </div>
+            <div class="sell-pnl-total">
+              <span>Realized P&amp;L</span>
+              <span class="sell-pnl-total-val" id="spPnl">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+          <button class="sell-confirm-btn" id="spSellBtn" onclick="confirmSell()" disabled>
+            Sell
+          </button>
+          <button class="sell-confirm-btn"
+                  style="background:linear-gradient(135deg,#22c55e,#16a34a);"
+                  id="spBuyBtn"
+                  onclick="confirmBuy()" disabled>
+            Buy
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/modal.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cursor-glow.js"></script>
+  <script>
+  /* ═══════════════════════════════════
+     FIX 1: _mode must be a string "sell", not a bare variable reference
+  ═══════════════════════════════════ */
+  let _mode = "sell";
+
+  console.log("JS LOADED");
+  const API = "http://localhost:3000";
+
+  const SECTOR_MAP = {
+    RELIANCE:"Energy",ONGC:"Energy",TCS:"IT",INFY:"IT",WIPRO:"IT",
+    HCLTECH:"IT",HDFCBANK:"Banking",ICICIBANK:"Banking",SBIN:"Banking",
+    AXISBANK:"Banking",KOTAKBANK:"Banking",ITC:"FMCG",HINDUNILVR:"FMCG",
+    NESTLEIND:"FMCG",MARUTI:"Automobile",TATAMOTORS:"Automobile",
+    "M&M":"Automobile",SUNPHARMA:"Pharma",DRREDDY:"Pharma",CIPLA:"Pharma",
+    LT:"Infrastructure",ULTRACEMCO:"Cement"
+  };
+
+  const SECTOR_COLORS = {
+    IT:"#3b82f6",Banking:"#8b5cf6",Energy:"#f59e0b",FMCG:"#10b981",
+    Pharma:"#ec4899",Automobile:"#06b6d4",Cement:"#64748b",
+    Infrastructure:"#f97316",Unknown:"#475569"
+  };
+
+  /* ── Auth ── */
+  if (!localStorage.getItem("token")) { alert("Please login first"); window.location.href="login.html"; }
+
+  function getToken() { return localStorage.getItem("token") || ""; }
+  function authHdrs() { return { "Content-Type":"application/json","Authorization":getToken() }; }
+
+  function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+  }
+
+  const uname = localStorage.getItem("username") || "Investor";
+  document.getElementById("displayUsername").textContent = uname;
+  document.getElementById("userAvatar").textContent = uname[0].toUpperCase();
+
+  const h = new Date().getHours();
+  document.getElementById("greetingText").textContent =
+    `Good ${h<12?"morning":h<17?"afternoon":"evening"}, ${uname}! Here's your portfolio overview.`;
+
+  function fmt(n) { return "₹" + (n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function fmtPct(n) { return (n>=0?"+":"")+n.toFixed(2)+"%"; }
+
+  function showToast(msg, type="success") {
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.className = "toast " + type;
+    setTimeout(() => t.classList.add("show"), 10);
+    setTimeout(() => t.classList.remove("show"), 3200);
+  }
+
+  async function fetchPrice(symbol) {
+    try {
+      const d = await(await fetch(`${API}/stock/${symbol}`)).json();
+      const m = d.chart?.result?.[0]?.meta;
+      return { current: m?.regularMarketPrice||0, open: m?.regularMarketOpen||0 };
+    } catch { return {current:0, open:0}; }
+  }
+
+  /* ── Holdings sidebar list ── */
+  function renderHoldingsList(holdings, prices) {
+    const el = document.getElementById("holdingsList");
+    if (!holdings || holdings.length === 0) {
+      console.log("No holdings found");
+      el.innerHTML = `<p style="color:var(--text-muted); padding:20px;">No stocks owned yet.</p>`;
+      return;
+    }
+
+    el.innerHTML = holdings.map((h, i) => {
+      const p = prices[i];
+      const retPct = ((p.current - h.avgBuy) / h.avgBuy * 100);
+
+      return `
+        <div class="holding-list-card" onclick="openTradePopup('${h.symbol}', ${h.avgBuy}, ${h.quantity}, ${p.current}, 'sell')">
+          <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <div>
+              <strong>${h.symbol}</strong>
+              <div style="font-size:0.68rem; color:var(--text-muted);">${h.quantity} Shares</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:var(--mono);">${fmt(p.current)}</div>
+              <div style="font-size:0.68rem; color:${retPct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'};">
+                ${retPct >= 0 ? '▲' : '▼'} ${Math.abs(retPct).toFixed(2)}%
+              </div>
+            </div>
+          </div>
+          <button
+            style="margin-top:8px; padding:6px 10px; font-size:0.7rem; border-radius:6px; border:none; cursor:pointer; background:#22c55e; color:white;"
+            onclick="event.stopPropagation(); openTradePopup('${h.symbol}', ${h.avgBuy}, ${h.quantity}, ${p.current}, 'buy')">
+            Buy
+          </button>
+          <span class="sell-hint">Click to Sell→</span>
+        </div>`;
+    }).join("");
+  }
+
+  /* ══════════════════════════════════════
+     TRADE POPUP LOGIC
+  ══════════════════════════════════════ */
+  let _sp = { symbol:"", avgBuy:0, owned:0, livePrice:0 };
+  let _previewTimeout = null;
+
+  function openTradePopup(symbol, avgBuy, owned, livePrice, mode) {
+    /* FIX 2: default mode to "sell" if not passed */
+    _mode = (mode === "buy") ? "buy" : "sell";
+    _sp = { symbol, avgBuy, owned, livePrice };
+
+    document.getElementById("spSymbol").textContent    = symbol;
+    document.getElementById("spSector").textContent    = SECTOR_MAP[symbol] || "Stock";
+    document.getElementById("spLivePrice").textContent = fmt(livePrice);
+    document.getElementById("spAvgBuy").textContent    = fmt(avgBuy);
+    document.getElementById("spOwned").textContent     = `${owned} shares`;
+
+    /* Show/hide correct button */
+    document.getElementById("spSellBtn").style.display = _mode === "sell" ? "block" : "none";
+    document.getElementById("spBuyBtn").style.display  = _mode === "buy"  ? "block" : "none";
+
+    /* Reset quantity */
+    const qtyInput = document.getElementById("spQty");
+    qtyInput.value = 1;
+    /* FIX 3: Only cap max for sell mode; buy has no upper limit from holdings */
+    qtyInput.max = _mode === "sell" ? owned : 9999;
+
+    /* Preset buttons — only relevant for sell mode */
+    if (_mode === "sell") {
+      const presets = [
+        { label:"25%", qty: Math.max(1, Math.floor(owned * 0.25)) },
+        { label:"50%", qty: Math.max(1, Math.floor(owned * 0.50)) },
+        { label:"75%", qty: Math.max(1, Math.floor(owned * 0.75)) },
+        { label:"All", qty: owned },
+      ];
+      document.getElementById("spPresets").innerHTML = presets.map(p =>
+        `<button class="sell-preset-btn" onclick="setPreset(${p.qty}, this)">${p.label} (${p.qty})</button>`
+      ).join("");
+    } else {
+      document.getElementById("spPresets").innerHTML = "";
+    }
+
+    /* Reset P&L panel */
+    document.getElementById("spPnlLoading").style.display = "block";
+    document.getElementById("spPnlLoading").textContent = "Enter quantity to see preview";
+    document.getElementById("spPnlContent").style.display = "none";
+    document.getElementById("spSellBtn").disabled = true;
+    document.getElementById("spBuyBtn").disabled  = true;
+    document.getElementById("sellOverlay").classList.add("open");
+
+    updatePreview();
+  }
+
+  function closeSellPopup() {
+    document.getElementById("sellOverlay").classList.remove("open");
+    clearTimeout(_previewTimeout);
+  }
+
+  document.getElementById("sellOverlay").addEventListener("click", e => {
+    if (e.target === document.getElementById("sellOverlay")) closeSellPopup();
+  });
+
+  function adjustQty(delta) {
+    const input = document.getElementById("spQty");
+    const maxVal = _mode === "sell" ? _sp.owned : 9999;
+    const newVal = Math.min(maxVal, Math.max(1, parseInt(input.value||1) + delta));
+    input.value = newVal;
+    document.querySelectorAll(".sell-preset-btn").forEach(b => b.classList.remove("active"));
+    updatePreview();
+  }
+
+  function setPreset(qty, btn) {
+    document.getElementById("spQty").value = qty;
+    document.querySelectorAll(".sell-preset-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    updatePreview();
+  }
+
+  function onQtyChange() {
+    document.querySelectorAll(".sell-preset-btn").forEach(b => b.classList.remove("active"));
+    clearTimeout(_previewTimeout);
+    _previewTimeout = setTimeout(updatePreview, 350);
+  }
+
+  async function updatePreview() {
+    const qty = parseInt(document.getElementById("spQty").value) || 0;
+    const sellBtn = document.getElementById("spSellBtn");
+    const buyBtn  = document.getElementById("spBuyBtn");
+
+    /* FIX 4: For buy mode, skip the "qty > owned" guard */
+    const isInvalid = !qty || qty < 1 || (_mode === "sell" && qty > _sp.owned);
+
+    if (isInvalid) {
+      document.getElementById("spPnlLoading").textContent = (_mode === "sell" && qty > _sp.owned)
+        ? `You only own ${_sp.owned} shares`
+        : "Enter a valid quantity";
+      document.getElementById("spPnlLoading").style.display = "block";
+      document.getElementById("spPnlContent").style.display = "none";
+      sellBtn.disabled = true;
+      buyBtn.disabled  = true;
+      return;
+    }
+
+    document.getElementById("spPnlLoading").textContent = "Calculating…";
+    document.getElementById("spPnlLoading").style.display = "block";
+    document.getElementById("spPnlContent").style.display = "none";
+    sellBtn.disabled = true;
+    buyBtn.disabled  = true;
+
+    try {
+      const token = localStorage.getItem("token") || "";
+
+      /* For buy mode we calculate client-side (no backend sell-preview needed) */
+      if (_mode === "buy") {
+        const totalCost = _sp.livePrice * qty;
+        document.getElementById("spProceeds").textContent  = fmt(totalCost);
+        document.getElementById("spCostBasis").textContent = "—";
+        document.getElementById("spRemaining").textContent = `${_sp.owned + qty} shares after buy`;
+        document.getElementById("spPnl").textContent       = `Cost: ${fmt(totalCost)}`;
+        document.getElementById("spPnl").style.color       = "#7B8BAD";
+        document.getElementById("spPnlCard").className     = "sell-pnl-card";
+        document.getElementById("spPnlLoading").style.display = "none";
+        document.getElementById("spPnlContent").style.display = "block";
+        /* Update P&L row label for buy context */
+        document.querySelector("#spPnlContent .sell-pnl-total span:first-child").textContent = "Total Cost";
+        buyBtn.disabled  = false;
+        buyBtn.textContent = `Buy ${qty} share${qty!==1?"s":""}`;
+        return;
+      }
+
+      /* Sell mode — call backend preview endpoint */
+      const res = await fetch(`${API}/portfolio/sell-preview`, {
+        method: "POST",
+        headers: { "Content-Type":"application/json", "Authorization": token },
+        body: JSON.stringify({ symbol: _sp.symbol.toUpperCase(), price: _sp.livePrice, quantity: qty })
+      });
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        document.getElementById("spPnlLoading").textContent = data.error || "Preview failed";
+        return;
+      }
+
+      const isProfit = data.profitLoss >= 0;
+      const pnlColor = isProfit ? "#2DD48A" : "#F2536A";
+      const pnlSign  = isProfit ? "+" : "";
+
+      document.getElementById("spProceeds").textContent  = fmt(data.proceeds);
+      document.getElementById("spCostBasis").textContent = fmt(data.costBasis);
+      document.getElementById("spRemaining").textContent = `${data.remainingQty} shares`;
+      document.getElementById("spPnl").textContent       = `${pnlSign}${fmt(data.profitLoss)} (${pnlSign}${data.profitLossPct.toFixed(2)}%)`;
+      document.getElementById("spPnl").style.color       = pnlColor;
+      document.querySelector("#spPnlContent .sell-pnl-total span:first-child").textContent = "Realized P&L";
+
+      document.getElementById("spPnlCard").className = "sell-pnl-card " + (isProfit ? "profit" : "loss");
+      document.getElementById("spPnlLoading").style.display = "none";
+      document.getElementById("spPnlContent").style.display = "block";
+
+      sellBtn.disabled   = false;
+      sellBtn.textContent = `Sell ${qty} share${qty!==1?"s":""}`;
+
+    } catch (err) {
+      /* Fallback: client-side calculation if backend unavailable */
+      if (_mode === "buy") {
+        /* Already handled above, but just in case */
+        buyBtn.disabled  = false;
+        buyBtn.textContent = `Buy ${qty} share${qty!==1?"s":""}`;
+        return;
+      }
+
+      const pnl    = (_sp.livePrice - _sp.avgBuy) * qty;
+      const pnlPct = _sp.avgBuy > 0 ? (pnl / (_sp.avgBuy * qty)) * 100 : 0;
+      const isProfit = pnl >= 0;
+      const pnlColor = isProfit ? "#2DD48A" : "#F2536A";
+      const pnlSign  = isProfit ? "+" : "";
+
+      document.getElementById("spProceeds").textContent  = fmt(_sp.livePrice * qty);
+      document.getElementById("spCostBasis").textContent = fmt(_sp.avgBuy * qty);
+      document.getElementById("spRemaining").textContent = `${_sp.owned - qty} shares`;
+      document.getElementById("spPnl").textContent       = `${pnlSign}${fmt(pnl)} (${pnlSign}${pnlPct.toFixed(2)}%)`;
+      document.getElementById("spPnl").style.color       = pnlColor;
+      document.querySelector("#spPnlContent .sell-pnl-total span:first-child").textContent = "Realized P&L";
+
+      document.getElementById("spPnlCard").className = "sell-pnl-card " + (isProfit ? "profit" : "loss");
+      document.getElementById("spPnlLoading").style.display = "none";
+      document.getElementById("spPnlContent").style.display = "block";
+
+      sellBtn.disabled   = false;
+      sellBtn.textContent = `Sell ${qty} share${qty!==1?"s":""}`;
+    }
+  }
+
+  async function confirmSell() {
+    const qty = parseInt(document.getElementById("spQty").value);
+    if (!qty || qty < 1 || qty > _sp.owned) { showToast("Invalid quantity","error"); return; }
+
+    const btn = document.getElementById("spSellBtn");
+    btn.disabled = true;
+    btn.textContent = "Processing…";
+
+    try {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${API}/portfolio/sell`, {
+        method: "POST",
+        headers: { "Content-Type":"application/json", "Authorization": token },
+        body: JSON.stringify({ symbol: _sp.symbol, price: _sp.livePrice, quantity: qty })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        const sign = data.profitLoss >= 0 ? "+" : "";
+        showToast(
+          `Sold ${qty} × ${_sp.symbol} · P&L: ${sign}${fmt(data.profitLoss)}`,
+          data.profitLoss >= 0 ? "success" : "error"
+        );
+        closeSellPopup();
+        loadPortfolio();
+      } else {
+        showToast(data.error || data.message || "Sell failed", "error");
+        btn.disabled = false;
+        btn.textContent = `Sell ${qty} share${qty!==1?"s":""}`;
+      }
+    } catch {
+      showToast("Network error — sell failed", "error");
+      btn.disabled = false;
+      btn.textContent = `Sell ${qty} share${qty!==1?"s":""}`;
+    }
+  }
+
+  async function confirmBuy() {
+    const qty = parseInt(document.getElementById("spQty").value);
+    if (!qty || qty < 1) { showToast("Invalid quantity", "error"); return; }
+
+    const btn = document.getElementById("spBuyBtn");
+    btn.disabled = true;
+    btn.textContent = "Processing…";
+
+    try {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${API}/portfolio/buy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": token },
+        body: JSON.stringify({ symbol: _sp.symbol, price: _sp.livePrice, quantity: qty })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        showToast(`Bought ${qty} × ${_sp.symbol}`, "success");
+        closeSellPopup();
+        loadPortfolio();
+      } else {
+        showToast(data.error || "Buy failed", "error");
+        btn.disabled = false;
+        btn.textContent = `Buy ${qty} share${qty!==1?"s":""}`;
+      }
+    } catch (err) {
+      showToast("Network error — buy failed", "error");
+      btn.disabled = false;
+      btn.textContent = `Buy ${qty} share${qty!==1?"s":""}`;
+    }
+  }
+
+  /* FIX 5: Enter key should route to the correct action based on _mode */
+  document.getElementById("spQty").addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      if (_mode === "buy") confirmBuy();
+      else confirmSell();
+    }
+  });
+
+  /* ── Sector allocation bars ── */
+  function renderSectorBars(holdings, prices) {
+    const totals = {};
+    let grand = 0;
+    holdings.forEach((h,i) => {
+      const val = (prices[i].current||h.avgBuy) * h.quantity;
+      const sec = SECTOR_MAP[h.symbol] || "Unknown";
+      totals[sec] = (totals[sec]||0) + val;
+      grand += val;
+    });
+    if (!grand) { document.getElementById("sectorBars").innerHTML = `<p style="font-size:0.82rem;color:var(--text-muted);">No data</p>`; return; }
+    document.getElementById("sectorBars").innerHTML = Object.entries(totals)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([sec,val]) => {
+        const pct = (val/grand*100).toFixed(1);
+        const col = SECTOR_COLORS[sec] || "#64748b";
+        return `
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:5px;">
+              <span>${sec}</span><span>${pct}%</span>
+            </div>
+            <div class="prog-bar">
+              <div class="prog-fill" style="width:${pct}%;background:${col};"></div>
+            </div>
+          </div>`;
+      }).join("");
+  }
+
+  /* ── Portfolio vs Benchmark chart ── */
+  let _portfolioChartInstance = null;   // ← track instance so we can destroy on reload
+
+  function renderPortfolioChart(invested, current) {
+    const ctx = document.getElementById("portfolioChart").getContext("2d");
+
+    // Destroy previous chart before creating a new one — this is the key fix
+    if (_portfolioChartInstance) {
+      _portfolioChartInstance.destroy();
+      _portfolioChartInstance = null;
+    }
+
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const now = new Date().getMonth();
+    const labels = months.slice(0, now+1);
+
+    const pctGain = invested > 0 ? (current - invested) / invested : 0;
+    const portData = labels.map((_, i) => {
+      const t = i / Math.max(labels.length-1,1);
+      return +(invested * (1 + pctGain * t * (0.85 + Math.random()*0.3))).toFixed(2);
+    });
+    portData[portData.length-1] = +current.toFixed(2);
+
+    const niftyData = labels.map((_,i) => {
+      const t = i / Math.max(labels.length-1,1);
+      return +(invested * (1 + 0.12 * t * (0.9 + Math.random()*0.2))).toFixed(2);
+    });
+
+    _portfolioChartInstance = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          { label:"Your Portfolio", data:portData, borderColor:"#8b5cf6", backgroundColor:"rgba(139,92,246,0.08)", fill:true, tension:0.4, borderWidth:2, pointRadius:3, pointBackgroundColor:"#8b5cf6" },
+          { label:"NIFTY 50",       data:niftyData, borderColor:"#10b981", backgroundColor:"rgba(16,185,129,0.05)", fill:true, tension:0.4, borderWidth:2, pointRadius:3, pointBackgroundColor:"#10b981" }
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => " ₹" + ctx.parsed.y.toLocaleString("en-IN") } } },
+        scales: {
+          x:{ grid:{color:"rgba(255,255,255,0.04)"}, ticks:{color:"#7B8BAD",font:{size:11}} },
+          y:{ grid:{color:"rgba(255,255,255,0.04)"}, ticks:{color:"#7B8BAD",font:{size:11}, callback: v=>"₹"+v.toLocaleString("en-IN")} }
+        }
+      }
+    });
+  }
+
+  /* ── AI Recommendations ── */
+  const RECOMMENDATIONS = [
+    { symbol:"HDFCBANK", name:"HDFC Bank Ltd", sector:"Banking", reason:"Strong NII growth, ROE > 17%, low NPA. Bullish momentum on weekly chart.", score:92, badge:"buy" },
+    { symbol:"TCS",      name:"Tata Consultancy Services", sector:"IT", reason:"Consistent revenue growth, margin expansion. 1Y return leader in IT.", score:88, badge:"buy" },
+    { symbol:"SUNPHARMA",name:"Sun Pharmaceutical", sector:"Pharma", reason:"Rising US generics pipeline. Watch for Q4 earnings catalyst.", score:79, badge:"watch" },
+    { symbol:"RELIANCE", name:"Reliance Industries", sector:"Energy", reason:"Jio growth slowing. Consider partial profit booking above current levels.", score:65, badge:"sell" },
+    { symbol:"ITC",      name:"ITC Limited", sector:"FMCG", reason:"Cigarette volumes stable. Hotels & FMCG segment showing strong traction.", score:82, badge:"buy" },
+  ];
+
+  function renderRecommendations() {
+    document.getElementById("recList").innerHTML = RECOMMENDATIONS.map(r => `
+      <div class="rec-item scroll-anim">
+        <div>
+          <div class="rec-symbol">${r.symbol}</div>
+          <div class="rec-name">${r.sector}</div>
+        </div>
+        <div>
+          <div style="font-size:0.88rem;font-weight:600;margin-bottom:3px;">${r.name}</div>
+          <div class="rec-reason">${r.reason}</div>
+        </div>
+        <div class="rec-score">${r.score}</div>
+        <div class="rec-badge ${r.badge}">${r.badge.toUpperCase()}</div>
+      </div>`).join("");
+  }
+
+  /* ── Risk Alerts ── */
+  const ALERTS = [
+    { icon:"⚠️", title:"High Beta Exposure", body:"Your portfolio beta is 1.24 — above the safe threshold. Consider adding FMCG or Pharma stocks to reduce volatility.", time:"Today, 9:15 AM" },
+    { icon:"📉", title:"Stop-Loss Triggered: TATAMOTORS", body:"TATAMOTORS has dropped 8.3% from your avg buy price. Review your position — stop-loss at ₹780 may activate.", time:"Today, 10:42 AM" },
+    { icon:"🔔", title:"Earnings Alert: TCS", body:"TCS Q4 results due in 3 days. High IV on options. Expect volatility — consider protective puts or reduce exposure.", time:"Yesterday, 4:00 PM" },
+  ];
+
+  function renderAlerts() {
+    const el = document.getElementById("alertList");
+    if (!ALERTS.length) { el.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;">No active alerts.</p>`; return; }
+    el.innerHTML = ALERTS.map(a => `
+      <div class="alert-item scroll-anim">
+        <div class="alert-icon">${a.icon}</div>
+        <div>
+          <div class="alert-title">${a.title}</div>
+          <div class="alert-body">${a.body}</div>
+          <div class="alert-time">${a.time}</div>
+        </div>
+      </div>`).join("");
+  }
+
+  /* ── MAIN LOAD ── */
+  async function loadPortfolio() {
+    // Show skeleton immediately so the user sees something is happening
+    document.getElementById("holdingsList").innerHTML = `
+      <div class="skeleton" style="height:80px;margin-bottom:10px;"></div>
+      <div class="skeleton" style="height:80px;margin-bottom:10px;"></div>
+      <div class="skeleton" style="height:80px;"></div>`;
+    document.getElementById("sectorBars").innerHTML = `
+      <div class="skeleton" style="height:24px;margin-bottom:8px;"></div>
+      <div class="skeleton" style="height:24px;margin-bottom:8px;"></div>
+      <div class="skeleton" style="height:24px;"></div>`;
+
+    try {
+      const token = localStorage.getItem("token");
+      console.log("Token:", token);
+
+      const res = await fetch(`${API}/portfolio/with-prices`, {
+        headers: { "Authorization": token }
+      });
+
+      /* FIX 6: Guard against non-OK responses before parsing JSON */
+      if (!res.ok) {
+        console.error("Portfolio API error:", res.status, res.statusText);
+        document.getElementById("holdingsList").innerHTML =
+          `<p style="color:var(--text-muted);padding:20px;">Failed to load holdings (${res.status}). Is the server running?</p>`;
+        return;
+      }
+
+      const data = await res.json();
+      console.log("Portfolio API response:", data);
+
+      /* FIX 7: Normalise response — backend may return array directly or wrapped in {holdings:[]} */
+      const holdings = Array.isArray(data) ? data : (data.holdings || []);
+
+      let totalValue    = 0;
+      let totalInvested = 0;
+
+      holdings.forEach(h => {
+        totalValue    += (h.current || h.avgBuy) * h.quantity;
+        totalInvested += h.avgBuy * h.quantity;
+      });
+
+      const overallReturn = totalValue - totalInvested;
+      const retPct = totalInvested > 0 ? (overallReturn / totalInvested) * 100 : 0;
+
+      document.getElementById("perfReturn").textContent =
+        `${retPct >= 0 ? '+' : ''}${retPct.toFixed(2)}%`;
+      document.getElementById("perfInvested").textContent = fmt(totalInvested);
+      document.getElementById("perfValue").textContent    = fmt(totalValue);
+      document.getElementById("perfAbsolute").textContent =
+        `${overallReturn >= 0 ? '+' : ''}${fmt(overallReturn)}`;
+
+      document.getElementById("statValue").textContent    = fmt(totalValue);
+      document.getElementById("statInvested").textContent = fmt(totalInvested);
+      document.getElementById("statReturn").textContent   =
+        `${retPct >= 0 ? '+' : ''}${fmt(overallReturn)} (${retPct.toFixed(2)}%)`;
+
+      const prices = holdings.map(h => ({
+        current: h.current || h.avgBuy,
+        open:    h.current || h.avgBuy
+      }));
+
+      renderHoldingsList(holdings, prices);
+      renderSectorBars(holdings, prices);
+      renderPortfolioChart(totalInvested, totalValue);
+
+    } catch (err) {
+      console.error("Portfolio Load Error:", err);
+      document.getElementById("holdingsList").innerHTML =
+        `<p style="color:var(--text-muted);padding:20px;">Error loading portfolio. Check console for details.</p>`;
+    }
+  }
+
+  function setupReveal() {
+    const obs = new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("visible");obs.unobserve(e.target);}});},{threshold:0.05});
+    document.querySelectorAll(".scroll-anim").forEach(el=>obs.observe(el));
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM Ready");
+    loadPortfolio();
+    renderRecommendations();
+    renderAlerts();
+    setupReveal();
+  });
+  </script>
+</body>
+</html>

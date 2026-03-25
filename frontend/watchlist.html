@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watchlist — Stockify</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/modal.css">
+  <style>
+    /* ── Portfolio sections palette ── */
+    :root {
+      --pc: #1a2440;
+      --pb: #223058;
+      --pd: #2d3f6b;
+    }
+
+    /* ── P-Card ── */
+    .p-card {
+      background: var(--pb);
+      border: 1px solid var(--pd);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
+    .p-title {
+      font-size: 0.82rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: #94a3b8; margin-bottom: 14px;
+      border-bottom: 1px solid var(--pd);
+      padding-bottom: 10px;
+    }
+
+    /* ── Portfolio Grid ── */
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: 3fr 4fr 3fr;
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+
+    /* ── Summary ── */
+    .summary-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .summary-item {
+      background: rgba(0,0,0,0.18); padding: 14px; border-radius: 8px;
+    }
+    .summary-label { font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px; }
+    .summary-val   { font-size: 1.55rem; font-weight: 700; color: #fff; font-family: var(--mono); }
+    .summary-sub   { font-size: 0.76rem; color: var(--accent-green); margin-top: 4px; }
+
+    /* ── CSS Treemap ── */
+    .css-treemap {
+      display: flex; flex-wrap: wrap;
+      height: 220px; gap: 3px; border-radius: 8px; overflow: hidden;
+    }
+    .t-node {
+      display: flex; align-items: flex-end; padding: 8px;
+      font-size: 0.72rem; color: #fff; font-weight: 600;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+      transition: opacity 0.2s;
+    }
+    .t-node:hover { opacity: 0.85; }
+
+    /* ── Heatmap grid ── */
+    .style-grid {
+      display: grid;
+      grid-template-columns: 52px 1fr 1fr 1fr;
+      grid-template-rows: 22px repeat(3, 1fr);
+      gap: 3px;
+      height: 155px;
+    }
+    .sg-head { font-size: 0.7rem; color: #94a3b8; text-align: center; align-self: end; }
+    .sg-side { font-size: 0.7rem; color: #94a3b8; align-self: center; justify-self: end; padding-right: 8px; }
+    .sg-cell {
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.3);
+      display: flex; align-items: flex-end; padding: 5px;
+      font-size: 0.72rem; color: #cbd5e1; border-radius: 4px;
+    }
+    .sg-cell.med    { background: rgba(59,130,246,0.42); }
+    .sg-cell.active { background: rgba(59,130,246,0.78); }
+
+    /* ── Sector Table ── */
+    .p-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .p-table th {
+      text-align: left; padding: 9px 10px;
+      color: #94a3b8; border-bottom: 1px solid var(--pd);
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .p-table td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #e2e8f0; }
+    .p-table tr:hover td { background: rgba(255,255,255,0.03); }
+    .p-table tr.grand td { font-weight: 700; background: rgba(255,255,255,0.05); }
+    .status-dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
+    .dot-red    { background: var(--accent-red); }
+    .dot-green  { background: var(--accent-green); }
+    .dot-yellow { background: #eab308; }
+
+    /* ── Year filter ── */
+    .year-filter a {
+      color: #94a3b8; text-decoration: none;
+      font-size: 0.85rem; padding: 4px 10px; border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .year-filter a:hover, .year-filter a.active {
+      color: #3b82f6; background: rgba(59,130,246,0.1);
+    }
+
+    /* ── Watchlist Table (existing) ── */
+    .wl-section-title {
+      font-size: 0.82rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: #94a3b8; margin: 32px 0 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .wl-section-title::before {
+      content: ''; width: 4px; height: 16px;
+      background: linear-gradient(180deg,#8b5cf6,#ec4899);
+      border-radius: 3px; display: inline-block;
+    }
+    .wl-table { width:100%; border-collapse:separate; border-spacing:0 7px; }
+    .wl-table thead th {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #3E4D6C;
+      padding: 6px 16px; text-align: left;
+      border-bottom: 1px solid rgba(99,140,220,0.12);
+    }
+    .wl-table tbody tr {
+      background: var(--pb); cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .wl-table tbody tr:hover { background: #223868; transform: translateX(4px); }
+    .wl-table tbody td {
+      padding: 14px 16px; font-size: 13px; color: #E8EDF8;
+      border-top: 1px solid rgba(99,140,220,0.1);
+      border-bottom: 1px solid rgba(99,140,220,0.1);
+    }
+    .wl-table tbody td:first-child { border-left:1px solid rgba(99,140,220,0.1); border-radius:10px 0 0 10px; }
+    .wl-table tbody td:last-child  { border-right:1px solid rgba(99,140,220,0.1); border-radius:0 10px 10px 0; }
+    .sym-name   { font-size:14px; font-weight:700; letter-spacing:0.04em; }
+    .sym-sector { font-size:10px; font-weight:600; color:#9C7C2E; letter-spacing:0.1em; text-transform:uppercase; margin-top:2px; }
+    .mono { font-family: var(--mono); }
+    .change-chip {
+      display:inline-flex; align-items:center; gap:4px;
+      font-family:var(--mono); font-size:12px; font-weight:600;
+      padding:3px 9px; border-radius:6px;
+    }
+    .change-chip.up   { background:rgba(45,212,138,0.1); color:#2DD48A; }
+    .change-chip.down { background:rgba(242,83,106,0.1); color:#F2536A; }
+
+    /* ── Drawer (existing) ── */
+    .drawer-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.65);
+      backdrop-filter:blur(4px); z-index:400;
+      opacity:0; pointer-events:none; transition:opacity 0.3s;
+    }
+    .drawer-overlay.open { opacity:1; pointer-events:all; }
+    .drawer {
+      position:fixed; top:0; right:-480px; bottom:0;
+      width:460px; max-width:100vw;
+      background:#141C2E; border-left:1px solid rgba(99,140,220,0.28);
+      z-index:401; overflow-y:auto;
+      transition:right 0.36s cubic-bezier(0.16,1,0.3,1);
+    }
+    .drawer-overlay.open .drawer { right:0; }
+    .drawer-header {
+      display:flex; align-items:flex-start; justify-content:space-between;
+      padding:24px 24px 18px; border-bottom:1px solid rgba(99,140,220,0.12);
+      position:sticky; top:0; background:#141C2E; z-index:1;
+    }
+    .drawer-close {
+      width:30px; height:30px; background:rgba(255,255,255,0.06);
+      border:1px solid rgba(99,140,220,0.12); border-radius:7px;
+      color:#7B8BAD; font-size:15px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:all 0.2s; flex-shrink:0;
+    }
+    .drawer-close:hover { color:#E8EDF8; border-color:rgba(99,140,220,0.28); }
+    .drawer-body { padding:22px 24px; }
+    .drawer-price { font-family:var(--mono); font-size:32px; font-weight:700; letter-spacing:-0.02em; }
+    .drawer-chg { font-family:var(--mono); font-size:13px; font-weight:600; margin-top:5px; display:flex; align-items:center; gap:8px; }
+    .spark-wrap { background:#0F1623; border:1px solid rgba(99,140,220,0.12); border-radius:12px; padding:14px; margin-bottom:20px; }
+    .spark-label { font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#3E4D6C; margin-bottom:10px; }
+    .d-section { margin-bottom:20px; }
+    .d-section-title { font-size:10px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#3E4D6C; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid rgba(99,140,220,0.12); }
+    .d-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .d-item { background:#0F1623; border:1px solid rgba(99,140,220,0.12); border-radius:9px; padding:11px 13px; }
+    .d-item-lbl { font-size:10px; color:#7B8BAD; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:4px; }
+    .d-item-val { font-family:var(--mono); font-size:14px; font-weight:600; color:#E8EDF8; }
+    .d-actions { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:10px; }
+    .d-btn { font-family:'Inter',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; border:1px solid; border-radius:9px; padding:12px; cursor:pointer; background:transparent; transition:all 0.2s; }
+    .d-btn-buy  { color:#2DD48A; border-color:rgba(45,212,138,0.35); }
+    .d-btn-buy:hover  { background:rgba(45,212,138,0.1); }
+    .d-btn-sell { color:#F2536A; border-color:rgba(242,83,106,0.35); }
+    .d-btn-sell:hover { background:rgba(242,83,106,0.1); }
+    .d-btn-rm   { grid-column:span 2; color:#7B8BAD; border-color:rgba(99,140,220,0.12); font-size:11px; }
+    .d-btn-rm:hover { color:#F2536A; border-color:rgba(242,83,106,0.3); background:rgba(242,83,106,0.05); }
+
+    /* ── Badge live ── */
+    .badge-live {
+      display:inline-flex; align-items:center; gap:5px;
+      font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
+      color:#2DD48A; background:rgba(45,212,138,0.08); border:1px solid rgba(45,212,138,0.2);
+      padding:3px 10px; border-radius:20px;
+    }
+    .badge-live-dot { width:5px; height:5px; border-radius:50%; background:#2DD48A; animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
+
+    /* ── Empty state ── */
+    .wl-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; color:#7B8BAD; text-align:center; }
+    .wl-empty-icon  { font-size:44px; margin-bottom:14px; opacity:0.2; }
+    .wl-empty-title { font-size:17px; font-weight:600; margin-bottom:7px; color:#E8EDF8; }
+    .wl-empty-sub   { font-size:13px; max-width:280px; }
+
+    @media (max-width: 1100px) { .portfolio-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 760px)  {
+      .portfolio-grid { grid-template-columns: 1fr; }
+      .main-content { margin-left:0; padding:20px 14px 80px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Mobile Toggle -->
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <h1>Stockify</h1>
+      <span>Smart Stock Recommender</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="portfolio.html"><span class="nav-icon">💼</span> Portfolio</a>
+      <a href="watchlist.html" class="active"><span class="nav-icon">👁️</span> Watchlist</a>
+      <a href="history.html"><span class="nav-icon">🧾</span> Transactions</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">S</div>
+        <div>
+          <div class="user-name" id="displayUsername">Investor</div>
+          <div class="user-role">Investor</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">⏻ Logout</button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN CONTENT ══ -->
+  <main class="main-content" style="background:#0f1624;">
+
+    <!-- ── Page Header ── -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--pd,#2d3f6b);padding-bottom:14px;margin-bottom:22px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h2 style="font-size:1.7rem;font-weight:700;margin:0;color:#fff;letter-spacing:-0.5px;">Sector Performance Portfolio</h2>
+        <p style="color:#64748b;font-size:0.85rem;margin-top:4px;">Live watchlist · Sector analysis · Market overview</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div class="year-filter" style="display:flex;gap:4px;">
+          <a href="#" class="active">(All)</a>
+          <a href="#">2024</a>
+          <a href="#">2025</a>
+          <a href="#">2026</a>
+        </div>
+        <span class="badge-live"><span class="badge-live-dot"></span>Live Prices</span>
+      </div>
+    </div>
+
+    <!-- ── TradingView Live Chart ── -->
+    <div class="p-card" style="margin-bottom:22px;padding:22px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h2 style="margin:0;font-size:1.4rem;color:#fff;" id="tvSymbolLabel">RELIANCE</h2>
+          <p style="color:#94a3b8;font-size:0.78rem;margin:4px 0 0;">NSE — Click any watchlist stock to change chart</p>
+        </div>
+      </div>
+      <div style="position:relative;height:400px;width:100%;">
+        <div class="tradingview-widget-container" style="height:100%;width:100%;">
+          <div id="tradingview_watchlist" style="height:100%;width:100%;"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+          <script type="text/javascript">
+            window._wlTvWidget = new TradingView.widget({
+              autosize: true,
+              symbol: "NSE:RELIANCE",
+              interval: "D",
+              timezone: "Asia/Kolkata",
+              theme: "dark",
+              style: "1",
+              locale: "en",
+              enable_publishing: false,
+              backgroundColor: "rgba(26,36,64,1)",
+              gridColor: "rgba(255,255,255,0.04)",
+              hide_top_toolbar: false,
+              save_image: false,
+              container_id: "tradingview_watchlist"
+            });
+
+            window.changeWatchlistChart = function(symbol) {
+              document.getElementById("tradingview_watchlist").innerHTML = "";
+              window._wlTvWidget = new TradingView.widget({
+                autosize: true, symbol: "NSE:" + symbol,
+                interval: "D", timezone: "Asia/Kolkata", theme: "dark",
+                style: "1", locale: "en", enable_publishing: false,
+                backgroundColor: "rgba(26,36,64,1)",
+                gridColor: "rgba(255,255,255,0.04)",
+                save_image: false, container_id: "tradingview_watchlist"
+              });
+              document.getElementById("tvSymbolLabel").textContent = symbol;
+            };
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PORTFOLIO GRID ══ -->
+    <div class="portfolio-grid">
+
+      <!-- ── Left Column ── -->
+      <div style="display:flex;flex-direction:column;gap:18px;">
+
+        <!-- Portfolio Activity Summary -->
+        <div class="p-card">
+          <div class="p-title">Portfolio Activity Summary</div>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="summary-label">Portfolio Value</div>
+              <div class="summary-val" id="sumValue">—</div>
+              <div class="summary-sub" id="sumValueSub">Loading…</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Overall Return %</div>
+              <div class="summary-val" id="sumRetPct">—</div>
+              <div class="summary-sub" id="sumRetSub">vs invested</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Watchlist Stocks</div>
+              <div class="summary-val" id="sumWlCount">—</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Today's P&amp;L</div>
+              <div class="summary-val" id="sumDaily">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CSS Treemap — Allocation by Sector -->
+        <div class="p-card" style="flex:1;">
+          <div class="p-title">Allocation — Sector (Watchlist)</div>
+          <div class="css-treemap" id="treemapEl">
+            <!-- injected by JS -->
+            <div class="t-node" style="width:55%;height:100%;background:#0284c7;">IT (Loading…)</div>
+            <div style="width:calc(45% - 3px);height:100%;display:flex;flex-direction:column;gap:3px;">
+              <div class="t-node" style="width:100%;height:38%;background:#65a30d;">Banking</div>
+              <div style="width:100%;height:62%;display:flex;gap:3px;">
+                <div class="t-node" style="width:55%;height:100%;background:#d946ef;">Energy</div>
+                <div style="width:calc(45% - 3px);height:100%;display:flex;flex-direction:column;gap:3px;">
+                  <div class="t-node" style="width:100%;height:50%;background:#854d0e;">FMCG</div>
+                  <div class="t-node" style="width:100%;height:50%;background:#7c3aed;">Pharma</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Middle Column ── -->
+      <div style="display:flex;flex-direction:column;gap:18px;">
+
+        <!-- Performance Chart -->
+        <div class="p-card" style="padding-bottom:16px;">
+          <div class="p-title" style="border:none;padding-bottom:4px;">Performance</div>
+          <div style="font-size:0.9rem;font-weight:700;margin-bottom:12px;color:#fff;">Portfolio Performance vs NIFTY 50</div>
+          <div style="height:220px;width:100%;position:relative;">
+            <canvas id="wlPerfChart"></canvas>
+          </div>
+          <div style="display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:0.78rem;font-weight:700;">
+            <span style="color:#8b5cf6;">— Your Portfolio</span>
+            <span style="color:#22c55e;">— NIFTY 50</span>
+          </div>
+        </div>
+
+        <!-- Sector Summary Table -->
+        <div class="p-card" style="flex:1;overflow-x:auto;">
+          <div class="p-title">Sector Summary</div>
+          <table class="p-table">
+            <thead>
+              <tr>
+                <th>Sector</th>
+                <th style="text-align:right;">Stocks</th>
+                <th style="text-align:right;">Avg Buy</th>
+                <th style="text-align:right;">Current</th>
+                <th style="text-align:right;">Evaluation</th>
+              </tr>
+            </thead>
+            <tbody id="sectorTableBody">
+              <tr><td colspan="5" style="text-align:center;color:#64748b;padding:24px;">Loading sector data…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Right Column ── -->
+      <div style="display:flex;flex-direction:column;gap:18px;">
+
+        <!-- Investment Style Heatmap -->
+        <div class="p-card">
+          <div class="p-title">Investment Style — Shares</div>
+          <div class="style-grid">
+            <div></div>
+            <div class="sg-head">Large Cap</div>
+            <div class="sg-head">Mid Cap</div>
+            <div class="sg-head">Small Cap</div>
+
+            <div class="sg-side">Blend</div>
+            <div class="sg-cell active">HDFC<br>RELIANCE</div>
+            <div class="sg-cell med">TCS<br>INFY</div>
+            <div class="sg-cell med">CIPLA<br>WIPRO</div>
+
+            <div class="sg-side">Value</div>
+            <div class="sg-cell med">SBIN<br>ITC</div>
+            <div class="sg-cell">ONGC</div>
+            <div class="sg-cell"></div>
+
+            <div class="sg-side">Growth</div>
+            <div class="sg-cell">MARUTI</div>
+            <div class="sg-cell active">HCLTECH<br>DRREDDY</div>
+            <div class="sg-cell med">NESTLEIND<br>LT</div>
+          </div>
+        </div>
+
+        <!-- Pie Chart -->
+        <div class="p-card" style="flex:1;">
+          <div class="p-title">Diversified Stock Portfolio</div>
+          <div style="height:240px;width:100%;position:relative;">
+            <canvas id="wlPieChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ WATCHLIST TABLE ══ -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+      <div class="wl-section-title" style="margin:0;">Live Watchlist</div>
+      <div style="font-size:12px;color:#64748b;" id="wlCount">Loading…</div>
+    </div>
+
+    <div id="wlContent">
+      <!-- skeleton -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="height:58px;background:#1a2440;border-radius:10px;animation:shimmer 1.5s infinite;background-size:200% 100%;background-image:linear-gradient(90deg,#1a2440 25%,#223058 50%,#1a2440 75%);"></div>
+        <div style="height:58px;background:#1a2440;border-radius:10px;animation:shimmer 1.5s infinite;background-size:200% 100%;background-image:linear-gradient(90deg,#1a2440 25%,#223058 50%,#1a2440 75%);"></div>
+        <div style="height:58px;background:#1a2440;border-radius:10px;animation:shimmer 1.5s infinite;background-size:200% 100%;background-image:linear-gradient(90deg,#1a2440 25%,#223058 50%,#1a2440 75%);"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══ DETAIL DRAWER ══ -->
+  <div class="drawer-overlay" id="drawerOverlay">
+    <div class="drawer" id="drawer">
+      <div class="drawer-header">
+        <div>
+          <div style="font-size:19px;font-weight:700;letter-spacing:0.04em;" id="drawerSymbol">—</div>
+          <div style="font-size:11px;color:#9C7C2E;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-top:3px;" id="drawerSector">—</div>
+        </div>
+        <button class="drawer-close" id="drawerCloseBtn">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div style="margin-bottom:20px;">
+          <div class="drawer-price" id="drawerPrice">—</div>
+          <div class="drawer-chg"   id="drawerChg"></div>
+        </div>
+        <div class="spark-wrap">
+          <div class="spark-label">30-Day Price Trend</div>
+          <svg id="sparkSvg" width="100%" height="70" viewBox="0 0 400 70" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="d-section">
+          <div class="d-section-title">Price Info</div>
+          <div class="d-grid" id="dPriceGrid"></div>
+        </div>
+        <div class="d-section">
+          <div class="d-section-title">Fundamentals</div>
+          <div class="d-grid" id="dFundGrid"></div>
+        </div>
+        <div class="d-actions">
+          <button class="d-btn d-btn-buy"  id="dBuyBtn">Buy</button>
+          <button class="d-btn d-btn-sell" id="dSellBtn">Sell</button>
+          <button class="d-btn d-btn-rm"   id="dRmBtn">Remove from Watchlist</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TRADE MODAL ══ -->
+  <div class="modal-overlay" id="tradeModal">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle">Trade</div>
+      <div class="modal-sub"   id="modalSub"></div>
+      <div class="modal-field">
+        <label class="modal-label">Quantity</label>
+        <input class="modal-input" type="number" id="tradeQty" min="1" placeholder="0"
+               onkeydown="if(event.key==='Enter') confirmTrade()">
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" id="tradeCancelBtn">Cancel</button>
+        <button class="modal-btn modal-btn-confirm buy" id="modalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/modal.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cursor-glow.js"></script>
+  <script>
+  /* ══════════════════════════════════════
+     WATCHLIST PAGE — FULL LOGIC
+  ══════════════════════════════════════ */
+  const API = "http://localhost:3000";
+
+  const SECTOR_MAP = {
+    RELIANCE:"Energy",ONGC:"Energy",TCS:"IT",INFY:"IT",WIPRO:"IT",
+    HCLTECH:"IT",HDFCBANK:"Banking",ICICIBANK:"Banking",SBIN:"Banking",
+    AXISBANK:"Banking",KOTAKBANK:"Banking",ITC:"FMCG",HINDUNILVR:"FMCG",
+    NESTLEIND:"FMCG",MARUTI:"Automobile",TATAMOTORS:"Automobile",
+    "M&M":"Automobile",SUNPHARMA:"Pharma",DRREDDY:"Pharma",CIPLA:"Pharma",
+    LT:"Infrastructure",ULTRACEMCO:"Cement"
+  };
+
+  const SECTOR_COLORS = {
+    IT:"#0284c7",Banking:"#7c3aed",Energy:"#d946ef",FMCG:"#854d0e",
+    Pharma:"#7c3aed",Automobile:"#065f46",Infrastructure:"#92400e",
+    Cement:"#1e3a5f",Unknown:"#334155"
+  };
+
+  if (!localStorage.getItem("token")) { alert("Please login first"); window.location.href="login.html"; }
+
+  const uname = localStorage.getItem("username")||"Investor";
+  document.getElementById("displayUsername").textContent = uname;
+  document.getElementById("userAvatar").textContent = uname[0].toUpperCase();
+
+  function authHdrs() { return { "Content-Type":"application/json","Authorization":localStorage.getItem("token")||"" }; }
+
+  function showToast(msg,type="success") {
+    const t=document.getElementById("toast");
+    t.textContent=msg; t.className="toast "+type;
+    setTimeout(()=>t.classList.add("show"),10);
+    setTimeout(()=>t.classList.remove("show"),3200);
+  }
+  function fmt(n)    { return "₹"+(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function fmtBig(n) {
+    if(!n&&n!==0) return "N/A";
+    if(Math.abs(n)>=1e12) return (n/1e12).toFixed(2)+"T";
+    if(Math.abs(n)>=1e9)  return (n/1e9 ).toFixed(2)+"B";
+    if(Math.abs(n)>=1e7)  return (n/1e7 ).toFixed(2)+"Cr";
+    return n.toLocaleString("en-IN");
+  }
+
+  /* ── FETCH ── */
+  async function fetchPrice(symbol) {
+    try {
+      const d=await(await fetch(`${API}/stock/${symbol}`)).json();
+      const m=d.chart?.result?.[0]?.meta;
+      return {
+        price:     m?.regularMarketPrice   ||0,
+        open:      m?.regularMarketOpen    ||0,
+        high:      m?.regularMarketDayHigh ||0,
+        low:       m?.regularMarketDayLow  ||0,
+        prevClose: m?.previousClose||m?.chartPreviousClose||0,
+        volume:    m?.regularMarketVolume  ||0,
+        wkHigh:    m?.fiftyTwoWeekHigh     ||0,
+        wkLow:     m?.fiftyTwoWeekLow      ||0,
+      };
+    } catch { return null; }
+  }
+
+  async function fetchFund(symbol) {
+    try {
+      const d=await(await fetch(`${API}/fundamentals/${symbol}`)).json();
+      const f=d.quoteSummary?.result?.[0]; if(!f) return null;
+      return {
+        pe:f.defaultKeyStatistics?.forwardPE||null,
+        mktCap:f.defaultKeyStatistics?.marketCap||null,
+        beta:f.defaultKeyStatistics?.beta||null,
+        roe:f.financialData?.returnOnEquity||null,
+        de:f.financialData?.debtToEquity||null,
+        revG:f.financialData?.revenueGrowth||null,
+        pm:f.financialData?.profitMargins||null,
+        rec:f.financialData?.recommendationMean||null,
+      };
+    } catch { return null; }
+  }
+
+  async function fetchSparkline(symbol) {
+    try {
+      const d=await(await fetch(`${API}/history/${symbol}/1mo`)).json();
+      return d.quotes?.map(q=>q.close).filter(Boolean)||
+             d.chart?.result?.[0]?.indicators?.quote?.[0]?.close||[];
+    } catch { return []; }
+  }
+
+  async function loadWatchlist() {
+    try {
+      const d=await(await fetch(`${API}/watchlist`,{headers:authHdrs()})).json();
+      return d.map(s=>s.symbol||s);
+    } catch { return []; }
+  }
+
+  /* ── Mini sparkline canvas ── */
+  function drawMini(canvas,prices,up) {
+    const ctx=canvas.getContext("2d"),W=canvas.width,H=canvas.height;
+    const mn=Math.min(...prices),mx=Math.max(...prices),r=mx-mn||1;
+    const pts=prices.map((p,i)=>[(i/(prices.length-1))*W,H-((p-mn)/r)*(H-4)-2]);
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,up?"rgba(45,212,138,0.3)":"rgba(242,83,106,0.3)");
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.beginPath(); ctx.moveTo(pts[0][0],H);
+    pts.forEach(p=>ctx.lineTo(p[0],p[1]));
+    ctx.lineTo(pts[pts.length-1][0],H); ctx.closePath();
+    ctx.fillStyle=g; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+    pts.forEach(p=>ctx.lineTo(p[0],p[1]));
+    ctx.strokeStyle=up?"#2DD48A":"#F2536A"; ctx.lineWidth=1.5; ctx.lineJoin="round"; ctx.stroke();
+  }
+
+  /* ── SVG sparkline (drawer) ── */
+  function drawSvgSpark(prices,up) {
+    const svg=document.getElementById("sparkSvg"),W=400,H=70;
+    const mn=Math.min(...prices),mx=Math.max(...prices),r=mx-mn||1;
+    const pts=prices.map((p,i)=>[
+      ((i/(prices.length-1))*W).toFixed(1),
+      (H-((p-mn)/r)*(H-10)-5).toFixed(1)
+    ]);
+    const line=pts.map((p,i)=>(i===0?"M":"L")+p[0]+","+p[1]).join(" ");
+    const area=`${line} L${W},${H} L0,${H} Z`;
+    const col=up?"#2DD48A":"#F2536A",gid="sg"+Date.now();
+    svg.innerHTML=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${col}" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="${col}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#${gid})"/>
+    <path d="${line}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
+  }
+
+  /* ── Performance & Pie Charts ── */
+  function initCharts(wlCount) {
+    /* Performance */
+    const perfCtx=document.getElementById("wlPerfChart").getContext("2d");
+    const pGrad=perfCtx.createLinearGradient(0,0,0,220);
+    pGrad.addColorStop(0,"rgba(139,92,246,0.35)");
+    pGrad.addColorStop(1,"rgba(139,92,246,0.0)");
+    new Chart(perfCtx,{
+      type:"line",
+      data:{
+        labels:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+        datasets:[
+          {label:"Your Portfolio",data:[10000,10500,10800,10400,11200,11800,12500,12200,12800,13400,13100,14000],
+           borderColor:"#8b5cf6",backgroundColor:pGrad,borderWidth:2,fill:true,tension:0.4,pointRadius:2,pointBackgroundColor:"#8b5cf6"},
+          {label:"NIFTY 50",data:[10000,10200,10400,10100,10600,10900,11200,11000,11400,11800,12000,12500],
+           borderColor:"#22c55e",borderWidth:2,fill:false,tension:0.4,pointRadius:2,pointBackgroundColor:"#22c55e"}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{ticks:{color:"#94a3b8",font:{size:10}},grid:{display:false}},
+          y:{ticks:{color:"#94a3b8",callback:v=>"₹"+(v/1000).toFixed(0)+"k"},grid:{color:"rgba(255,255,255,0.04)"}}
+        }
+      }
+    });
+
+    /* Pie */
+    const pieCtx=document.getElementById("wlPieChart").getContext("2d");
+    new Chart(pieCtx,{
+      type:"pie",
+      data:{
+        labels:["HDFCBANK","TCS","RELIANCE","INFY","SUNPHARMA","ITC","SBIN","WIPRO"],
+        datasets:[{
+          data:[18,16,14,12,10,10,12,8],
+          backgroundColor:["#3b82f6","#f97316","#9ca3af","#eab308","#38bdf8","#84cc16","#1e3a8a","#b45309"],
+          borderWidth:1,borderColor:"#1a2440"
+        }]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:"right",labels:{color:"#cbd5e1",boxWidth:10,font:{size:9}}}}
+      }
+    });
+  }
+
+  /* ── Render summary cards ── */
+  function renderSummary(symbols, prices) {
+    const totalDayPnl = prices.reduce((acc,p)=>acc+(p?(p.price-p.open):0),0);
+    const up = totalDayPnl >= 0;
+
+    document.getElementById("sumValue").textContent    = `${symbols.length} stocks`;
+    document.getElementById("sumValueSub").textContent = `${(prices.filter(Boolean)).length} active`;
+    document.getElementById("sumRetPct").textContent   = "Live";
+    document.getElementById("sumRetSub").textContent   = "prices loaded";
+    document.getElementById("sumWlCount").textContent  = symbols.length;
+
+    const dailyEl = document.getElementById("sumDaily");
+    dailyEl.textContent = (totalDayPnl>=0?"+":"")+totalDayPnl.toFixed(0);
+    dailyEl.style.color = up ? "#2DD48A" : "#F2536A";
+  }
+
+  /* ── Render treemap ── */
+  function renderTreemap(symbols) {
+    const sectors = {};
+    symbols.forEach(s => {
+      const sec = SECTOR_MAP[s]||"Unknown";
+      sectors[sec] = (sectors[sec]||0) + 1;
+    });
+    const sorted = Object.entries(sectors).sort((a,b)=>b[1]-a[1]);
+    if (!sorted.length) return;
+
+    const total = sorted.reduce((a,[,v])=>a+v,0);
+    const el = document.getElementById("treemapEl");
+    const [topSec, topN] = sorted[0];
+    const topPct = Math.round(topN/total*100);
+    const rest = sorted.slice(1);
+
+    let html = `<div class="t-node" style="width:${topPct}%;height:100%;background:${SECTOR_COLORS[topSec]||"#334155"};">${topSec}(${topN})</div>`;
+    html += `<div style="width:calc(${100-topPct}% - 3px);height:100%;display:flex;flex-direction:column;gap:3px;">`;
+    rest.forEach(([sec,n],i)=>{
+      const pct=Math.round(n/total*100);
+      html += `<div class="t-node" style="width:100%;height:${Math.max(pct*1.5,15)}%;background:${SECTOR_COLORS[sec]||"#334155"};">${sec}(${n})</div>`;
+    });
+    html += `</div>`;
+    el.innerHTML = html;
+  }
+
+  /* ── Render sector table ── */
+  function renderSectorTable(symbols, prices) {
+    const sectorData = {};
+    symbols.forEach((s,i) => {
+      const sec = SECTOR_MAP[s]||"Unknown";
+      const p = prices[i];
+      if (!sectorData[sec]) sectorData[sec] = { count:0, prices:[], symbols:[] };
+      sectorData[sec].count++;
+      sectorData[sec].symbols.push(s);
+      if (p) sectorData[sec].prices.push(p);
+    });
+
+    const tbody = document.getElementById("sectorTableBody");
+    if (!Object.keys(sectorData).length) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#64748b;padding:24px;">No data</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = Object.entries(sectorData).map(([sec,d]) => {
+      const avgCurr = d.prices.length ? d.prices.reduce((a,p)=>a+p.price,0)/d.prices.length : 0;
+      const avgOpen = d.prices.length ? d.prices.reduce((a,p)=>a+p.open,0)/d.prices.length : 0;
+      const eval_   = ((avgCurr-avgOpen)*d.count).toFixed(2);
+      const up      = parseFloat(eval_) >= 0;
+      const dot     = up ? "dot-green" : "dot-red";
+      return `<tr>
+        <td>${sec}</td>
+        <td style="text-align:right;">${d.count}</td>
+        <td style="text-align:right;font-family:var(--mono);">${avgOpen>0?fmt(avgOpen):"—"}</td>
+        <td style="text-align:right;font-family:var(--mono);">${avgCurr>0?fmt(avgCurr):"—"}</td>
+        <td style="text-align:right;"><span class="status-dot ${dot}"></span><span style="color:${up?"#2DD48A":"#F2536A"};font-family:var(--mono);">${up?"+":""}₹${eval_}</span></td>
+      </tr>`;
+    }).join("") + `<tr class="grand">
+      <td>Total</td>
+      <td style="text-align:right;">${symbols.length}</td>
+      <td style="text-align:right;">—</td>
+      <td style="text-align:right;">—</td>
+      <td style="text-align:right;">—</td>
+    </tr>`;
+  }
+
+  /* ── Render watchlist table ── */
+  async function renderWatchlist() {
+    const symbols = await loadWatchlist();
+    const countEl = document.getElementById("wlCount");
+    const content = document.getElementById("wlContent");
+    countEl.textContent = `${symbols.length} stock${symbols.length!==1?"s":""}`;
+
+    if (!symbols.length) {
+      content.innerHTML = `
+        <div class="wl-empty">
+          <div class="wl-empty-icon">◇</div>
+          <div class="wl-empty-title">Your watchlist is empty</div>
+          <div class="wl-empty-sub">Go to the Dashboard and click "+ Watchlist" on any stock to start tracking it here.</div>
+        </div>`;
+      document.getElementById("sumWlCount").textContent = "0";
+      initCharts(0);
+      return;
+    }
+
+    /* skeleton rows */
+    content.innerHTML = `
+      <table class="wl-table">
+        <thead><tr>
+          <th>Symbol</th><th>Price</th><th>Change</th>
+          <th>High</th><th>Low</th><th>52W High</th><th>Volume</th><th>Trend</th>
+        </tr></thead>
+        <tbody id="wlBody">
+          ${symbols.map(()=>`<tr><td colspan="8"><div style="height:16px;background:rgba(255,255,255,0.04);border-radius:4px;"></div></td></tr>`).join("")}
+        </tbody>
+      </table>`;
+
+    const prices = await Promise.all(symbols.map(fetchPrice));
+
+    /* Summary + Treemap + Table */
+    renderSummary(symbols, prices);
+    renderTreemap(symbols);
+    renderSectorTable(symbols, prices);
+    initCharts(symbols.length);
+
+    const tbody = document.getElementById("wlBody");
+    if (!tbody) return;
+
+    tbody.innerHTML = symbols.map((sym,i) => {
+      const p = prices[i];
+      if (!p) return `
+        <tr onclick="openWlDrawer('${sym}')">
+          <td><div><div class="sym-name">${sym}</div><div class="sym-sector">${SECTOR_MAP[sym]||"—"}</div></div></td>
+          <td colspan="7" style="color:#64748b;font-size:12px;">Data unavailable</td>
+        </tr>`;
+      const chg=p.prevClose?p.price-p.prevClose:0;
+      const chgPct=p.prevClose?(chg/p.prevClose)*100:0;
+      const up=chg>=0;
+      return `
+        <tr onclick="openWlDrawer('${sym}')">
+          <td><div><div class="sym-name">${sym}</div><div class="sym-sector">${SECTOR_MAP[sym]||"—"}</div></div></td>
+          <td class="mono" style="font-size:14px;font-weight:600;">${fmt(p.price)}</td>
+          <td><span class="change-chip ${up?"up":"down"}">${up?"▲":"▼"} ${Math.abs(chgPct).toFixed(2)}%</span></td>
+          <td class="mono" style="color:#2DD48A;">${fmt(p.high)}</td>
+          <td class="mono" style="color:#F2536A;">${fmt(p.low)}</td>
+          <td class="mono">${fmt(p.wkHigh)}</td>
+          <td class="mono" style="color:#64748b;">${fmtBig(p.volume)}</td>
+          <td><canvas id="mc-${sym}" width="80" height="32"></canvas></td>
+        </tr>`;
+    }).join("");
+
+    /* sparklines + chart swap on click */
+    symbols.forEach(async (sym,i) => {
+      const canvas=document.getElementById("mc-"+sym);
+      if (!canvas) return;
+      const sp=await fetchSparkline(sym);
+      if (sp.length>=2) drawMini(canvas,sp,(prices[i]?.price||0)>=(prices[i]?.prevClose||0));
+    });
+  }
+
+  /* ── Drawer ── */
+  let _drawerSym=null, _drawerPrice=0;
+
+  async function openWlDrawer(symbol) {
+    /* Also update TradingView chart */
+    if (typeof changeWatchlistChart==="function") changeWatchlistChart(symbol);
+
+    _drawerSym=symbol;
+    document.getElementById("drawerSymbol").textContent=symbol;
+    document.getElementById("drawerSector").textContent=SECTOR_MAP[symbol]||"Stock";
+    document.getElementById("drawerPrice").textContent="Loading…";
+    document.getElementById("drawerChg").innerHTML="";
+    document.getElementById("dPriceGrid").innerHTML="";
+    document.getElementById("dFundGrid").innerHTML="";
+    document.getElementById("sparkSvg").innerHTML="";
+    document.getElementById("drawerOverlay").classList.add("open");
+
+    const [p,fund,sp]=await Promise.all([fetchPrice(symbol),fetchFund(symbol),fetchSparkline(symbol)]);
+    if (!p) { document.getElementById("drawerPrice").textContent="N/A"; return; }
+
+    _drawerPrice=p.price;
+    const chg=p.prevClose?p.price-p.prevClose:0;
+    const chgPct=p.prevClose?(chg/p.prevClose)*100:0;
+    const up=chg>=0;
+    const col=up?"#2DD48A":"#F2536A";
+
+    document.getElementById("drawerPrice").textContent=fmt(p.price);
+    document.getElementById("drawerChg").innerHTML=`
+      <span style="color:${col}">${up?"▲":"▼"} ${fmt(Math.abs(chg))} (${Math.abs(chgPct).toFixed(2)}%)</span>
+      <span style="font-size:11px;color:#3E4D6C;font-family:'Inter',sans-serif;">vs prev close</span>`;
+
+    document.getElementById("dPriceGrid").innerHTML=[
+      ["Open",fmt(p.open)],["Prev Close",fmt(p.prevClose)],
+      [`<span style="color:#2DD48A">Day High</span>`,fmt(p.high)],
+      [`<span style="color:#F2536A">Day Low</span>`,fmt(p.low)],
+      ["52W High",fmt(p.wkHigh)],["52W Low",fmt(p.wkLow)],["Volume",fmtBig(p.volume)],
+    ].map(([k,v])=>`<div class="d-item"><div class="d-item-lbl">${k}</div><div class="d-item-val">${v}</div></div>`).join("");
+
+    document.getElementById("dFundGrid").innerHTML=fund?[
+      ["P/E Ratio",fund.pe?fund.pe.toFixed(2):"N/A"],
+      ["Market Cap",fund.mktCap?fmtBig(fund.mktCap):"N/A"],
+      ["Beta",fund.beta?fund.beta.toFixed(2):"N/A"],
+      ["ROE",fund.roe?(fund.roe*100).toFixed(1)+"%":"N/A"],
+      ["Debt/Equity",fund.de?fund.de.toFixed(2):"N/A"],
+      ["Rev Growth",fund.revG?(fund.revG*100).toFixed(1)+"%":"N/A"],
+      ["Profit Margin",fund.pm?(fund.pm*100).toFixed(1)+"%":"N/A"],
+      ["Analyst Rating",fund.rec?fund.rec.toFixed(1)+"/5":"N/A"],
+    ].map(([k,v])=>`<div class="d-item"><div class="d-item-lbl">${k}</div><div class="d-item-val">${v}</div></div>`).join("")
+    :`<div style="color:#64748b;font-size:13px;grid-column:span 2;">Fundamentals unavailable</div>`;
+
+    if (sp.length>=2) drawSvgSpark(sp,up);
+
+    document.getElementById("dBuyBtn").onclick  = ()=>openTradeModal(symbol,"BUY");
+    document.getElementById("dSellBtn").onclick = ()=>openTradeModal(symbol,"SELL");
+    document.getElementById("dRmBtn").onclick   = ()=>confirmRemove(symbol);
+  }
+
+  function closeDrawer() { document.getElementById("drawerOverlay").classList.remove("open"); }
+  document.getElementById("drawerCloseBtn").addEventListener("click", closeDrawer);
+  document.getElementById("drawerOverlay").addEventListener("click", e=>{ if(e.target===document.getElementById("drawerOverlay")) closeDrawer(); });
+
+  async function confirmRemove(symbol) {
+    if (!confirm(`Remove ${symbol} from watchlist?`)) return;
+    try {
+      const res=await fetch(`${API}/watchlist/remove`,{method:"POST",headers:authHdrs(),body:JSON.stringify({symbol})});
+      if (res.ok) { showToast(`${symbol} removed`); closeDrawer(); renderWatchlist(); }
+      else showToast("Remove not supported by server yet","error");
+    } catch { showToast("Remove failed","error"); }
+  }
+
+  /* ── Trade Modal ── */
+  let _trade=null;
+  function openTradeModal(symbol,type) {
+    if (!localStorage.getItem("token")) { showToast("Please login","error"); return; }
+    _trade={symbol,price:_drawerPrice,type};
+    document.getElementById("modalTitle").textContent=`${type==="BUY"?"Buy":"Sell"} ${symbol}`;
+    document.getElementById("modalSub").textContent=`Current price: ${fmt(_drawerPrice)}`;
+    document.getElementById("tradeQty").value="";
+    const btn=document.getElementById("modalConfirm");
+    btn.className="modal-btn modal-btn-confirm "+type.toLowerCase();
+    btn.textContent=type==="BUY"?"Confirm Buy":"Confirm Sell";
+    document.getElementById("tradeModal").classList.add("open");
+    setTimeout(()=>document.getElementById("tradeQty").focus(),80);
+  }
+  function closeTradeModal() { document.getElementById("tradeModal").classList.remove("open"); _trade=null; }
+  async function confirmTrade() {
+    if (!_trade) return;
+    const qty=parseInt(document.getElementById("tradeQty").value);
+    if (!qty||qty<=0) { showToast("Enter valid quantity","error"); return; }
+    const ep=_trade.type==="BUY"?"/portfolio/buy":"/portfolio/sell";
+    try {
+      const res=await fetch(`${API}${ep}`,{method:"POST",headers:authHdrs(),body:JSON.stringify({symbol:_trade.symbol,price:_trade.price,quantity:qty})});
+      const d=await res.json();
+      if (res.ok) { showToast(`${_trade.type==="BUY"?"Bought":"Sold"} ${qty} shares of ${_trade.symbol}`); closeTradeModal(); }
+      else showToast(d.error||d.message||"Trade failed","error");
+    } catch { showToast("Trade failed","error"); }
+  }
+
+  document.getElementById("modalConfirm").addEventListener("click", confirmTrade);
+  document.getElementById("tradeCancelBtn").addEventListener("click", closeTradeModal);
+  document.getElementById("tradeModal").addEventListener("click", e=>{ if(e.target===document.getElementById("tradeModal")) closeTradeModal(); });
+
+  /* ── Year filter (UI only) ── */
+  document.querySelectorAll(".year-filter a").forEach(a=>{
+    a.addEventListener("click",e=>{
+      e.preventDefault();
+      document.querySelectorAll(".year-filter a").forEach(x=>x.classList.remove("active"));
+      a.classList.add("active");
+    });
+  });
+
+  /* ── INIT ── */
+  renderWatchlist();
+  </script>
+</body>
+</html>

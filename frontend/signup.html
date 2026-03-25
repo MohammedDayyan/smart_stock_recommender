@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up — Stockify</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body.auth-page {
+      display: flex;
+      min-height: 100vh;
+      background: var(--bg-deep);
+      overflow: hidden;
+      align-items: stretch;
+    }
+
+    /* LEFT: Robot */
+    .robot-panel {
+      flex: 1.1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #080c14, #0f172a);
+      border-right: 1px solid rgba(236,72,153,0.15);
+      padding: 40px 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    .robot-panel::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(236,72,153,0.05) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+      pointer-events: none;
+    }
+    .robot-panel h2 { font-size: 1.6rem; font-weight: 800; color: #fff; margin-bottom: 8px; letter-spacing: -0.5px; text-align: center; }
+    .robot-panel > p { font-size: 0.9rem; color: #475569; text-align: center; max-width: 270px; line-height: 1.6; margin-bottom: 44px; }
+
+    /* RIGHT: Form */
+    .auth-right { flex: 0.9; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+    .auth-card  { width: 100%; max-width: 420px; }
+
+    /* ── Robot ── */
+    .robot-wrap { position: relative; width: 210px; cursor: pointer; user-select: none; }
+    @keyframes robotFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+    .robot-float { animation: robotFloat 3.8s ease-in-out infinite; }
+
+    .r-head {
+      width: 136px; height: 112px;
+      background: radial-gradient(circle at 30% 28%, #f8fafc, #94a3b8);
+      border-radius: 44% 44% 38% 38%; margin: 0 auto; position: relative;
+      box-shadow: inset -8px -8px 18px rgba(0,0,0,0.2), 0 12px 30px rgba(0,0,0,0.4);
+    }
+    .r-antenna { position: absolute; top: -36px; left: 50%; transform: translateX(-50%); width: 4px; height: 36px; background: #94a3b8; border-radius: 3px; }
+    .r-antenna::after {
+      content: ''; position: absolute; top: -8px; left: -5px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #ec4899; box-shadow: 0 0 14px #ec4899;
+      animation: antGlow 2s infinite alternate;
+    }
+    @keyframes antGlow {
+      from { box-shadow: 0 0 6px #ec4899; }
+      to   { box-shadow: 0 0 24px #f472b6, 0 0 48px #ec4899; }
+    }
+    .r-visor {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 112px; height: 58px; background: #0a0f1e; border-radius: 29px;
+      display: flex; align-items: center; justify-content: space-evenly; padding: 0 12px;
+      box-shadow: inset 0 4px 14px #000, 0 0 18px rgba(236,72,153,0.12);
+    }
+    .r-eye {
+      width: 34px; height: 34px;
+      border: 3px solid #ec4899;
+      border-radius: 50%;
+      box-shadow: 0 0 14px #ec4899, inset 0 0 10px rgba(236,72,153,0.3);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+      animation: blinkRobot 5s infinite;
+    }
+    .r-pupil { width: 14px; height: 14px; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; position: absolute; transition: transform 0.07s linear; }
+    @keyframes blinkRobot { 0%,93%,100% { transform: scaleY(1); } 96% { transform: scaleY(0.08); } }
+
+    .r-body {
+      width: 90px; height: 104px;
+      background: radial-gradient(circle at 30% 28%, #f1f5f9, #94a3b8);
+      border-radius: 22px 22px 30px 30px;
+      margin: -20px auto 0; position: relative;
+      box-shadow: inset -4px -8px 18px rgba(0,0,0,0.2), 0 8px 22px rgba(0,0,0,0.4);
+    }
+    .r-core {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #ec4899; box-shadow: 0 0 20px #ec4899;
+      animation: corePulse 2.2s infinite alternate;
+    }
+    @keyframes corePulse {
+      from { transform: translate(-50%,-50%) scale(0.88); opacity: 0.8; }
+      to   { transform: translate(-50%,-50%) scale(1.14); opacity: 1; }
+    }
+    .r-arm {
+      position: absolute; width: 22px; height: 70px;
+      background: linear-gradient(180deg, #e2e8f0, #94a3b8);
+      border-radius: 11px; top: 16px;
+      box-shadow: -2px 4px 10px rgba(0,0,0,0.25);
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .r-arm.left  { left: -18px;  transform-origin: top right; transform: rotate(28deg); }
+    .r-arm.right { right: -18px; transform-origin: top left;  transform: rotate(-28deg); }
+    .robot-wrap:hover .r-arm.left  { transform: rotate(55deg); }
+    .robot-wrap:hover .r-arm.right { transform: rotate(-55deg); }
+
+    .r-speech {
+      position: absolute; top: 10px; left: calc(100% + 16px);
+      background: linear-gradient(135deg, #ec4899, #db2777);
+      color: #fff; font-size: 0.82rem; font-weight: 600;
+      padding: 10px 16px; border-radius: 14px 14px 14px 4px;
+      white-space: nowrap;
+      box-shadow: 0 8px 22px rgba(236,72,153,0.4);
+      opacity: 0; pointer-events: none;
+      transform: scale(0.88) translateX(-6px);
+      transition: opacity 0.28s, transform 0.28s cubic-bezier(0.16,1,0.3,1);
+    }
+    .r-speech.show { opacity: 1; transform: scale(1) translateX(0); }
+
+    .mini-ticker { margin-top: 48px; width: 100%; overflow: hidden; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 18px; }
+    .mini-ticker-inner { display: flex; gap: 30px; animation: ticker-scroll 20s linear infinite; white-space: nowrap; font-size: 0.76rem; font-weight: 700; color: #475569; }
+
+    @media (max-width: 768px) { .robot-panel { display: none; } .auth-right { width: 100%; flex: none; } }
+  </style>
+</head>
+<body class="auth-page">
+
+  <!-- ── Left: Robot ── -->
+  <div class="robot-panel">
+    <h2>Join Stockify Today</h2>
+    <p>Create your account and start making smarter trades with AI-powered recommendations.</p>
+
+    <div class="robot-wrap" id="robotWrap" onclick="showRobotMsg()">
+      <div class="robot-float">
+        <div class="r-head">
+          <div class="r-antenna"></div>
+          <div class="r-visor">
+            <div class="r-eye" id="eyeL"><div class="r-pupil" id="pupilL"></div></div>
+            <div class="r-eye" id="eyeR"><div class="r-pupil" id="pupilR"></div></div>
+          </div>
+        </div>
+        <div class="r-body">
+          <div class="r-arm left"></div>
+          <div class="r-arm right"></div>
+          <div class="r-core"></div>
+        </div>
+      </div>
+      <div class="r-speech" id="rSpeech">Let's grow your wealth! 💰</div>
+    </div>
+
+    <div class="mini-ticker">
+      <div class="mini-ticker-inner">
+        <span>TCS ₹3,950 <span style="color:#10b981">▲2.1%</span></span>
+        <span>INFY ₹1,650 <span style="color:#10b981">▲1.4%</span></span>
+        <span>RELIANCE ₹2,980 <span style="color:#10b981">▲1.8%</span></span>
+        <span>SBIN ₹760 <span style="color:#ef4444">▼0.4%</span></span>
+        <span>WIPRO ₹482 <span style="color:#10b981">▲1.2%</span></span>
+        <span>TCS ₹3,950 <span style="color:#10b981">▲2.1%</span></span>
+        <span>INFY ₹1,650 <span style="color:#10b981">▲1.4%</span></span>
+        <span>RELIANCE ₹2,980 <span style="color:#10b981">▲1.8%</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right: Form ── -->
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-logo">Stockify</div>
+      <div class="auth-title">Create account</div>
+      <div class="auth-subtitle">Start tracking and trading smarter today</div>
+
+      <div class="auth-field">
+        <label class="auth-label">Username</label>
+        <input class="auth-input" type="text" id="username" placeholder="Choose a username" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input class="auth-input" type="email" id="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <input class="auth-input" type="password" id="password" placeholder="Min. 6 characters" minlength="6" autocomplete="new-password">
+      </div>
+
+      <button class="auth-btn" onclick="signup()">Create Account</button>
+
+      <div class="auth-link">
+        Already have an account? <a href="login.html">Sign in</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/auth.js"></script>
+  <script>
+    /* ── Cursor-tracking eyes ── */
+    const eyeL   = document.getElementById("eyeL");
+    const eyeR   = document.getElementById("eyeR");
+    const pupilL = document.getElementById("pupilL");
+    const pupilR = document.getElementById("pupilR");
+
+    document.addEventListener("mousemove", e => {
+      moveEye(eyeL, pupilL, e.clientX, e.clientY);
+      moveEye(eyeR, pupilR, e.clientX, e.clientY);
+    });
+
+    function moveEye(eye, pupil, mx, my) {
+      const r  = eye.getBoundingClientRect();
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const dx = mx - cx, dy = my - cy;
+      const d  = Math.sqrt(dx*dx + dy*dy) || 1;
+      const max = 8, t = Math.min(d, max*4) / (max*4);
+      pupil.style.transform = `translate(${((dx/d)*max*t).toFixed(1)}px,${((dy/d)*max*t).toFixed(1)}px)`;
+    }
+
+    /* ── Speech messages ── */
+    const MSGS = [
+      "Let's grow your wealth! 💰",
+      "46,000+ investors trust us 🌍",
+      "AI picks updated daily 🧠",
+      "Safe & Aggressive profiles 🛡️",
+      "Sign up — it's free! 🎉",
+      "Your journey starts here 🚀",
+    ];
+    let mi = 0;
+    function showRobotMsg() {
+      const b = document.getElementById("rSpeech");
+      b.textContent = MSGS[mi++ % MSGS.length];
+      b.classList.add("show");
+      setTimeout(() => b.classList.remove("show"), 3000);
+    }
+    setTimeout(showRobotMsg, 1200);
+    setInterval(showRobotMsg, 6500);
+  </script>
+</body>
+</html>
