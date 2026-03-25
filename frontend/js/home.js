@@ -4,7 +4,7 @@
 
 const API_BASE = "http://localhost:3000";
 
-/* ─── Playing Cards Init ─── */
+/* ─── Playing Cards Init  of the simulation of the query─── */
 function initPlayingCards(onSelect) {
   const cards = document.querySelectorAll(".playing-card");
   if (!cards.length) return;
@@ -18,7 +18,7 @@ function initPlayingCards(onSelect) {
       const tf = card.dataset.timeframe;
       if (tf === current) return;
 
-      // Shuffle siblings
+      // Shuffle siblings of the 
       cards.forEach((c, i) => {
         c.classList.remove("selected","shuffle-left","shuffle-right");
         c.classList.add(i % 2 === 0 ? "shuffle-left" : "shuffle-right");

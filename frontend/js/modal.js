@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════
-   CUSTOM MODAL — replaces browser alert()
+   CUSTOM MODAL — replaces browser alert() method od main code
    ═══════════════════════════════════════ */
 
 (function() {

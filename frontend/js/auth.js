@@ -14,7 +14,7 @@ function showToast(msg, type = "success") {
   setTimeout(() => { t.classList.remove("show"); }, 3200);
 }
 
-/* ── SIGNUP ── */
+/* ── SIGNUP model of the page of the code of javascript logic for backend ── */
 async function signup() {
   const username = document.getElementById("username")?.value?.trim();
   const email    = document.getElementById("email")?.value?.trim();

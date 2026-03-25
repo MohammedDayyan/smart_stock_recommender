@@ -9,7 +9,7 @@
     glow.className = "cursor-glow";
     document.body.appendChild(glow);
 
-    // ─── Trail Particles ───
+    // ─── Trail Particles trail_count createElement  ───
     const TRAIL_COUNT = 6;
     const trails = [];
     for (let i = 0; i < TRAIL_COUNT; i++) {
@@ -41,7 +41,7 @@
       if (e.target.closest(INTERACTIVE)) { glow.classList.remove("expanded"); isHovering = false; }
     });
 
-    // ─── Smooth Animation Loop ───
+    // ─── Smooth Animation Loop and also the animated function───
     function animate() {
       const ease = 0.12;
       glowX += (mouseX - glowX) * ease;
@@ -64,7 +64,7 @@
     }
     animate();
 
-    // ─── Click Ripple ───
+    // ─── Click Ripple append child and classname style top───
     document.addEventListener("click", (e) => {
       const target = e.target.closest(".playing-card, .stock-card, .dash-card, .stat-card");
       if (!target) return;

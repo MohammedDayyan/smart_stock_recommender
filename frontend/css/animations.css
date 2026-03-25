@@ -14,7 +14,7 @@
 }
 body { animation: pageEnter 0.5s ease-out; }
 
-/* ─── Glowing Cursor ─── */
+/* ─── Glowing Cursor of the radined gradient─── */
 .cursor-glow {
   position: fixed;
   width: 300px; height: 300px;
@@ -45,7 +45,7 @@ body { animation: pageEnter 0.5s ease-out; }
   transition: opacity 0.4s ease;
 }
 
-/* ─── Glassmorphism ─── */
+/* ─── Glassmorphism fo cody code ─── */
 .glass-card {
   background: rgba(255,255,255,0.04);
   backdrop-filter: blur(16px);
