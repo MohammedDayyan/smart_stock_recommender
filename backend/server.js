@@ -110,6 +110,7 @@ app.post("/login", async (req, res) => {
 
 /* ---------------- STOCK ---------------- */
 
+// Querying Yahoo Finance for real time stock price and metadata
 app.get("/stock/:symbol", async (req, res) => {
   try {
     const symbol = req.params.symbol + ".NS";
@@ -131,6 +132,7 @@ app.get("/stock/:symbol", async (req, res) => {
 
 /* ---------------- FUNDAMENTALS ---------------- */
 
+// To pull key statistics (P/E, debt to equity, ROE etc..)
 app.get("/fundamentals/:symbol", async (req, res) => {
   try {
     const data = await yahooFinance.quoteSummary(req.params.symbol + ".NS", {
@@ -146,6 +148,7 @@ app.get("/fundamentals/:symbol", async (req, res) => {
 
 /* ---------------- HISTORY ---------------- */
 
+// Market Chart data for graphs and Technical Analysis
 app.get("/history/:symbol/:range", async (req, res) => {
   try {
     const now = Math.floor(Date.now() / 1000);
@@ -209,6 +212,8 @@ app.get("/watchlist", authMiddleware, async (req, res) => {
 });
 
 /* ---------------- PORTFOLIO (PROTECTED) ---------------- */
+
+// Fetch users holdings with real-time market prices
 app.get("/portfolio/with-prices", authMiddleware, async (req, res) => {
   const username = req.user.username;
 
@@ -258,6 +263,7 @@ app.get("/portfolio/with-prices", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Failed to load portfolio" });
   }
 });
+
 app.post("/portfolio/buy", authMiddleware, async (req, res) => {
   const symbol = req.body.symbol.toUpperCase();
   const { price, quantity } = req.body;

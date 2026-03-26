@@ -1,13 +1,12 @@
-// backend/models/Transaction.js
 const mongoose = require("mongoose");
 
 const TransactionSchema = new mongoose.Schema({
   username: { type: String, required: true, index: true },
-  type:     { type: String, enum: ["BUY", "SELL"], required: true },
-  symbol:   { type: String, required: true },
-  price:    { type: Number, required: true },   // execution price
+  type: { type: String, enum: ["BUY", "SELL"], required: true },
+  symbol: { type: String, required: true },
+  price: { type: Number, required: true },
   quantity: { type: Number, required: true },
-  total:    { type: Number, required: true },   // price × quantity
+  total: { type: Number, required: true },
 
   /* ── Enriched fields ── */
   avgBuy: {
@@ -28,7 +27,7 @@ const TransactionSchema = new mongoose.Schema({
   },
   notes: {
     type: String,
-    default: ""            // optional user-facing note
+    default: ""
   },
   time: { type: Date, default: Date.now, index: true }
 });
