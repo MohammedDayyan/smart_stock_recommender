@@ -1,17 +1,10 @@
-/* ═══════════════════════════════════════════════════════════
-   simulation.js  —  GBM Price Simulator + Yahoo Finance Search
-   ═══════════════════════════════════════════════════════════ */
-
 const SIM_API = "http://localhost:3000";
 
-/* ──────────────────────────────────────
-   GBM MATH
-   ────────────────────────────────────── */
 const POINTS_PER_YEAR = 2520;          // ~252 trading days × 10 ticks
 const HORIZONS = {
-  "1_Day":   10,
+  "1_Day": 10,
   "1_Month": 210,
-  "1_Year":  2520,
+  "1_Year": 2520,
   "5_Years": 12600
 };
 
@@ -30,7 +23,7 @@ function boxMuller() {
  * @param {number} steps  number of ticks
  */
 function gbmPath(price, mu, sigma, steps) {
-  const muPP    = mu    / POINTS_PER_YEAR;
+  const muPP = mu / POINTS_PER_YEAR;
   const sigmaPP = sigma / Math.sqrt(POINTS_PER_YEAR);
   const path = [price];
   let p = price;
@@ -50,49 +43,49 @@ function projectHorizons(price, mu, sigma) {
   for (const [label, steps] of Object.entries(HORIZONS)) {
     // blend recent vs full-history mu (mimics the Python notebook logic)
     const w = steps <= 20 ? 0.8 : steps <= 300 ? 0.5 : 0.0;
-    const blended = mu * w + mu * (1 - w);   // trivially mu here; richer when multi-path
+    const blended = mu * w + mu * (1 - w);
     const projected = price * Math.exp(
       (blended / POINTS_PER_YEAR - 0.5 * Math.pow(sigma / Math.sqrt(POINTS_PER_YEAR), 2)) * steps
     );
     results[label] = {
       price: projected,
-      roi:   ((projected - price) / price) * 100
+      roi: ((projected - price) / price) * 100
     };
   }
   return results;
 }
 
-/* ──────────────────────────────────────
-   SIMULATION MODAL
-   ────────────────────────────────────── */
-let _simStock     = null;
-let _simInterval  = null;
-let _simChart     = null;
-let _simTick      = 0;
-let _simPaths     = { bull: [], base: [], bear: [] };
+
+// SIMULATION MODEL
+
+let _simStock = null;
+let _simInterval = null;
+let _simChart = null;
+let _simTick = 0;
+let _simPaths = { bull: [], base: [], bear: [] };
 let _simDayCounter = 0;
 let _simSnapshots = {};   // { day: { bull, base, bear } }
 
 function openSimModal(stock) {
   _simStock = stock;
-  _simTick  = 0;
+  _simTick = 0;
   _simDayCounter = 0;
-  _simSnapshots  = {};
+  _simSnapshots = {};
 
-  document.getElementById("simSymbol").textContent  = stock.symbol;
-  document.getElementById("simSector").textContent  = stock.sector || "";
-  document.getElementById("simPrice").textContent   =
+  document.getElementById("simSymbol").textContent = stock.symbol;
+  document.getElementById("simSector").textContent = stock.sector || "";
+  document.getElementById("simPrice").textContent =
     "₹" + stock.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  document.getElementById("simStatus").textContent  = "Initializing Engine…";
+  document.getElementById("simStatus").textContent = "Initializing Engine…";
   document.getElementById("simDayLabel").textContent = "Day 0";
 
   /* Derive GBM params from available stock data */
-  const mu    = (stock.revenueGrowth && Math.abs(stock.revenueGrowth) < 2)
-                  ? stock.revenueGrowth
-                  : (stock.percentChange / 100) * 252;   // annualise daily %
+  const mu = (stock.revenueGrowth && Math.abs(stock.revenueGrowth) < 2)
+    ? stock.revenueGrowth
+    : (stock.percentChange / 100) * 252;   // annualise daily %
   const sigma = (stock.beta > 0 ? stock.beta : 1) * 0.18; // ~18 % market vol
 
-  _simStock._mu    = mu;
+  _simStock._mu = mu;
   _simStock._sigma = sigma;
 
   // Prime the 3 scenario paths (bull = +1σ, base = mu, bear = -1σ)
@@ -117,19 +110,19 @@ function openSimModal(stock) {
 function closeSimModal() {
   document.getElementById("simOverlay").classList.remove("open");
   if (_simInterval) { clearInterval(_simInterval); _simInterval = null; }
-  if (_simChart)    { _simChart.destroy(); _simChart = null; }
+  if (_simChart) { _simChart.destroy(); _simChart = null; }
 }
 
 function _tickSim(mu, sigma) {
   _simTick++;
-  const muPP    = mu    / POINTS_PER_YEAR;
+  const muPP = mu / POINTS_PER_YEAR;
   const sigmaPP = sigma / Math.sqrt(POINTS_PER_YEAR);
 
   ["bull", "base", "bear"].forEach(scenario => {
     const prev = _simPaths[scenario][_simPaths[scenario].length - 1];
-    const drift = scenario === "bull"  ?  muPP + sigmaPP * 0.5
-                : scenario === "bear"  ?  muPP - sigmaPP * 0.5
-                :                         muPP;
+    const drift = scenario === "bull" ? muPP + sigmaPP * 0.5
+      : scenario === "bear" ? muPP - sigmaPP * 0.5
+        : muPP;
     let next = prev * Math.exp((drift - 0.5 * sigmaPP * sigmaPP) + sigmaPP * boxMuller());
     if (next < 0.01) next = 0.01;
     _simPaths[scenario].push(next);
@@ -163,9 +156,9 @@ function _buildSimChart() {
     data: {
       labels: [],
       datasets: [
-        { label: "Bull",  data: [], borderColor: "#2DD48A", borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0.3 },
-        { label: "Base",  data: [], borderColor: "#8b5cf6", borderWidth: 2,   pointRadius: 0, fill: false, tension: 0.3 },
-        { label: "Bear",  data: [], borderColor: "#F2536A", borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0.3 }
+        { label: "Bull", data: [], borderColor: "#2DD48A", borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0.3 },
+        { label: "Base", data: [], borderColor: "#8b5cf6", borderWidth: 2, pointRadius: 0, fill: false, tension: 0.3 },
+        { label: "Bear", data: [], borderColor: "#F2536A", borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0.3 }
       ]
     },
     options: {
@@ -174,9 +167,11 @@ function _buildSimChart() {
       scales: {
         x: { display: false },
         y: {
-          ticks: { color: "#94a3b8", font: { size: 10 },
-                   callback: v => "₹" + v.toLocaleString("en-IN", { maximumFractionDigits: 0 }) },
-          grid:  { color: "rgba(255,255,255,0.04)" }
+          ticks: {
+            color: "#94a3b8", font: { size: 10 },
+            callback: v => "₹" + v.toLocaleString("en-IN", { maximumFractionDigits: 0 })
+          },
+          grid: { color: "rgba(255,255,255,0.04)" }
         }
       }
     }
@@ -186,10 +181,10 @@ function _buildSimChart() {
 function _updateSimChart() {
   if (!_simChart) return;
   const len = _simPaths.base.length;
-  _simChart.data.labels              = Array.from({ length: len }, (_, i) => i);
-  _simChart.data.datasets[0].data   = _simPaths.bull;
-  _simChart.data.datasets[1].data   = _simPaths.base;
-  _simChart.data.datasets[2].data   = _simPaths.bear;
+  _simChart.data.labels = Array.from({ length: len }, (_, i) => i);
+  _simChart.data.datasets[0].data = _simPaths.bull;
+  _simChart.data.datasets[1].data = _simPaths.base;
+  _simChart.data.datasets[2].data = _simPaths.bear;
   _simChart.update("none");
 }
 
@@ -198,9 +193,9 @@ function _renderHorizonTables(price, mu, sigma) {
   let html = "";
   for (const [label, steps] of Object.entries(HORIZONS)) {
     const scenarios = [
-      { name:"Bull",  col:"#2DD48A", price: _endPrice(price, mu + sigma * 0.5, sigma, steps) },
-      { name:"Base",  col:"#8b5cf6", price: _endPrice(price, mu,               sigma, steps) },
-      { name:"Bear",  col:"#F2536A", price: _endPrice(price, mu - sigma * 0.5, sigma, steps) }
+      { name: "Bull", col: "#2DD48A", price: _endPrice(price, mu + sigma * 0.5, sigma, steps) },
+      { name: "Base", col: "#8b5cf6", price: _endPrice(price, mu, sigma, steps) },
+      { name: "Bear", col: "#F2536A", price: _endPrice(price, mu - sigma * 0.5, sigma, steps) }
     ].map(s => ({ ...s, roi: ((s.price - price) / price) * 100 }));
 
     const tag = label.replace("_", " ");
@@ -220,10 +215,10 @@ function _renderHorizonTables(price, mu, sigma) {
               <tr>
                 <td style="padding:5px 4px;font-weight:700;color:${s.col};">${s.name}</td>
                 <td style="text-align:right;padding:5px 4px;font-family:monospace;">
-                  ₹${s.price.toLocaleString("en-IN",{maximumFractionDigits:2})}
+                  ₹${s.price.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
                 </td>
-                <td style="text-align:right;padding:5px 4px;font-weight:700;color:${s.roi>=0?"#2DD48A":"#F2536A"};">
-                  ${s.roi>=0?"+":""}${s.roi.toFixed(2)}%
+                <td style="text-align:right;padding:5px 4px;font-weight:700;color:${s.roi >= 0 ? "#2DD48A" : "#F2536A"};">
+                  ${s.roi >= 0 ? "+" : ""}${s.roi.toFixed(2)}%
                 </td>
               </tr>`).join("")}
           </tbody>
@@ -234,14 +229,14 @@ function _renderHorizonTables(price, mu, sigma) {
 }
 
 function _endPrice(price, mu, sigma, steps) {
-  const muPP    = mu    / POINTS_PER_YEAR;
+  const muPP = mu / POINTS_PER_YEAR;
   const sigmaPP = sigma / Math.sqrt(POINTS_PER_YEAR);
   return price * Math.exp((muPP - 0.5 * sigmaPP * sigmaPP) * steps);
 }
 
 /* ── Tab switching ── */
 function setSimTab(tab) {
-  document.getElementById("simLivePanel").style.display = tab === "live"       ? "block" : "none";
+  document.getElementById("simLivePanel").style.display = tab === "live" ? "block" : "none";
   document.getElementById("simHistPanel").style.display = tab === "historical" ? "block" : "none";
   document.querySelectorAll(".sim-tab").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
 }
@@ -262,14 +257,14 @@ function queryHistorical() {
 
   resultEl.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;">
-      ${[["Bull","#2DD48A",snap.bull],["Base","#8b5cf6",snap.base],["Bear","#F2536A",snap.bear]].map(([name,col,p])=>`
+      ${[["Bull", "#2DD48A", snap.bull], ["Base", "#8b5cf6", snap.base], ["Bear", "#F2536A", snap.bear]].map(([name, col, p]) => `
         <div style="background:#0F1623;border:1px solid #1e293b;border-radius:10px;padding:14px;text-align:center;">
           <div style="color:${col};font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">${name}</div>
           <div style="font-family:monospace;font-size:1.1rem;font-weight:700;color:#E8EDF8;">
-            ₹${p.toLocaleString("en-IN",{maximumFractionDigits:2})}
+            ₹${p.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
           </div>
-          <div style="font-size:0.78rem;font-weight:700;color:${((p-p0)/p0)>=0?"#2DD48A":"#F2536A"};margin-top:4px;">
-            ${((p-p0)/p0)>=0?"+":""}${(((p-p0)/p0)*100).toFixed(2)}% from entry
+          <div style="font-size:0.78rem;font-weight:700;color:${((p - p0) / p0) >= 0 ? "#2DD48A" : "#F2536A"};margin-top:4px;">
+            ${((p - p0) / p0) >= 0 ? "+" : ""}${(((p - p0) / p0) * 100).toFixed(2)}% from entry
           </div>
         </div>`).join("")}
     </div>`;
@@ -279,7 +274,7 @@ function queryHistorical() {
    YAHOO FINANCE SEARCH PANEL
    ══════════════════════════════════════ */
 let _searchTimeout = null;
-let _searchChart   = null;
+let _searchChart = null;
 
 function initSearchBar() {
   const input = document.getElementById("searchInput");
@@ -320,31 +315,31 @@ async function fetchSearchData(symbol) {
 
     const [pd, fd, hd] = await Promise.all([priceRes.json(), fundRes.json(), histRes.json()]);
 
-    const meta  = pd.chart?.result?.[0]?.meta;
-    const fund  = fd.quoteSummary?.result?.[0];
-    const hist  = hd.quotes?.map(q => q.close).filter(Boolean) ||
-                  hd.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [];
+    const meta = pd.chart?.result?.[0]?.meta;
+    const fund = fd.quoteSummary?.result?.[0];
+    const hist = hd.quotes?.map(q => q.close).filter(Boolean) ||
+      hd.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [];
 
     if (!meta) {
       panel.innerHTML = `<div style="padding:16px;color:#F2536A;font-size:0.85rem;">Symbol <strong>${symbol}</strong> not found on NSE. Try without ".NS".</div>`;
       return;
     }
 
-    const price     = meta.regularMarketPrice || 0;
-    const open      = meta.regularMarketOpen  || price;
-    const chg       = open ? ((price - open) / open * 100) : 0;
-    const up        = chg >= 0;
+    const price = meta.regularMarketPrice || 0;
+    const open = meta.regularMarketOpen || price;
+    const chg = open ? ((price - open) / open * 100) : 0;
+    const up = chg >= 0;
 
     /* 5 Key Parameters */
     const params = [
-      { label: "P/E Ratio",    val: fund?.defaultKeyStatistics?.forwardPE?.toFixed(2)         || "N/A" },
-      { label: "Market Cap",   val: _fmtBig(fund?.defaultKeyStatistics?.marketCap)             },
-      { label: "52W High",     val: meta.fiftyTwoWeekHigh ? "₹" + meta.fiftyTwoWeekHigh.toLocaleString("en-IN", {maximumFractionDigits:2}) : "N/A" },
-      { label: "52W Low",      val: meta.fiftyTwoWeekLow  ? "₹" + meta.fiftyTwoWeekLow.toLocaleString("en-IN", {maximumFractionDigits:2})  : "N/A" },
-      { label: "Beta",         val: fund?.defaultKeyStatistics?.beta?.toFixed(2)              || "N/A" },
-      { label: "Volume",       val: _fmtBig(meta.regularMarketVolume) },
-      { label: "ROE",          val: fund?.financialData?.returnOnEquity ? (fund.financialData.returnOnEquity * 100).toFixed(1) + "%" : "N/A" },
-      { label: "Analyst",      val: fund?.financialData?.recommendationMean ? fund.financialData.recommendationMean.toFixed(1) + "/5" : "N/A" }
+      { label: "P/E Ratio", val: fund?.defaultKeyStatistics?.forwardPE?.toFixed(2) || "N/A" },
+      { label: "Market Cap", val: _fmtBig(fund?.defaultKeyStatistics?.marketCap) },
+      { label: "52W High", val: meta.fiftyTwoWeekHigh ? "₹" + meta.fiftyTwoWeekHigh.toLocaleString("en-IN", { maximumFractionDigits: 2 }) : "N/A" },
+      { label: "52W Low", val: meta.fiftyTwoWeekLow ? "₹" + meta.fiftyTwoWeekLow.toLocaleString("en-IN", { maximumFractionDigits: 2 }) : "N/A" },
+      { label: "Beta", val: fund?.defaultKeyStatistics?.beta?.toFixed(2) || "N/A" },
+      { label: "Volume", val: _fmtBig(meta.regularMarketVolume) },
+      { label: "ROE", val: fund?.financialData?.returnOnEquity ? (fund.financialData.returnOnEquity * 100).toFixed(1) + "%" : "N/A" },
+      { label: "Analyst", val: fund?.financialData?.recommendationMean ? fund.financialData.recommendationMean.toFixed(1) + "/5" : "N/A" }
     ];
 
     panel.innerHTML = `
@@ -357,10 +352,10 @@ async function fetchSearchData(symbol) {
           </div>
           <div style="text-align:right;">
             <div style="font-family:monospace;font-size:1.3rem;font-weight:700;color:#E8EDF8;">
-              ₹${price.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
+              ₹${price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <div style="font-size:0.78rem;font-weight:700;color:${up?"#2DD48A":"#F2536A"};">
-              ${up?"▲":"▼"} ${Math.abs(chg).toFixed(2)}% today
+            <div style="font-size:0.78rem;font-weight:700;color:${up ? "#2DD48A" : "#F2536A"};">
+              ${up ? "▲" : "▼"} ${Math.abs(chg).toFixed(2)}% today
             </div>
           </div>
         </div>
@@ -435,8 +430,8 @@ function _drawSearchChart(prices, up) {
 function _fmtBig(n) {
   if (!n && n !== 0) return "N/A";
   if (Math.abs(n) >= 1e12) return (n / 1e12).toFixed(2) + "T";
-  if (Math.abs(n) >= 1e9)  return (n / 1e9 ).toFixed(2) + "B";
-  if (Math.abs(n) >= 1e7)  return (n / 1e7 ).toFixed(2) + " Cr";
+  if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2) + "B";
+  if (Math.abs(n) >= 1e7) return (n / 1e7).toFixed(2) + " Cr";
   return n.toLocaleString("en-IN");
 }
 
@@ -445,7 +440,7 @@ async function addToWatchlistSearch(symbol) {
   try {
     await fetch(`${SIM_API}/watchlist/add`, {
       method: "POST",
-      headers: { "Content-Type":"application/json", "Authorization": token },
+      headers: { "Content-Type": "application/json", "Authorization": token },
       body: JSON.stringify({ symbol })
     });
     // reuse dashboard toast if available
@@ -456,7 +451,7 @@ async function addToWatchlistSearch(symbol) {
       setTimeout(() => t.classList.add("show"), 10);
       setTimeout(() => t.classList.remove("show"), 3200);
     }
-  } catch {}
+  } catch { }
 }
 
 function searchBuy(symbol, price) {

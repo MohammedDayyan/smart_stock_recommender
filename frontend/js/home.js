@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════
-   home.js — Landing page + shared card logic
-   ═══════════════════════════════════════ */
-
 const API_BASE = "http://localhost:3000";
 
 /* ─── Playing Cards Init  of the simulation of the query─── */
@@ -20,9 +16,9 @@ function initPlayingCards(onSelect) {
 
       // Shuffle siblings of the 
       cards.forEach((c, i) => {
-        c.classList.remove("selected","shuffle-left","shuffle-right");
+        c.classList.remove("selected", "shuffle-left", "shuffle-right");
         c.classList.add(i % 2 === 0 ? "shuffle-left" : "shuffle-right");
-        setTimeout(() => c.classList.remove("shuffle-left","shuffle-right"), 550);
+        setTimeout(() => c.classList.remove("shuffle-left", "shuffle-right"), 550);
       });
 
       // Flip clicked card
@@ -53,8 +49,8 @@ function initPlayingCards(onSelect) {
     card.addEventListener("mouseenter", () => {
       const siblings = [...cards];
       const idx = siblings.indexOf(card);
-      if (idx > 0) siblings[idx-1].style.transform = "translateX(-5px) rotate(-1.5deg)";
-      if (idx < siblings.length-1) siblings[idx+1].style.transform = "translateX(5px) rotate(1.5deg)";
+      if (idx > 0) siblings[idx - 1].style.transform = "translateX(-5px) rotate(-1.5deg)";
+      if (idx < siblings.length - 1) siblings[idx + 1].style.transform = "translateX(5px) rotate(1.5deg)";
     });
     card.addEventListener("mouseleave", () => {
       cards.forEach(c => { if (!c.classList.contains("selected")) c.style.transform = ""; });
@@ -87,7 +83,7 @@ function animateCounters() {
   document.querySelectorAll(".counter[data-target]").forEach(el => {
     const target = +el.getAttribute("data-target");
     const dur = 1600, start = performance.now();
-    const ease = t => 1 - Math.pow(1-t, 4);
+    const ease = t => 1 - Math.pow(1 - t, 4);
     const tick = (now) => {
       const p = Math.min((now - start) / dur, 1);
       el.textContent = fmt(target * ease(p));
@@ -109,48 +105,50 @@ function animateProgressBars() {
 async function login() {
   const username = document.getElementById("username")?.value?.trim();
   const password = document.getElementById("password")?.value;
-  if (!username || !password) { showModal("Please fill all fields", { type:"warning" }); return; }
+  if (!username || !password) { showModal("Please fill all fields", { type: "warning" }); return; }
   try {
-    const res  = await fetch(`${API_BASE}/login`, {
-      method:"POST", headers:{"Content-Type":"application/json"},
+    const res = await fetch(`${API_BASE}/login`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password })
     });
     const data = await res.json();
     if (data.success && data.token) {
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", username);
-      showModal("Welcome back!", { type:"success", onOk: () => window.location.href = "dashboard.html" });
+      showModal("Welcome back!", { type: "success", onOk: () => window.location.href = "dashboard.html" });
     } else {
       document.getElementById("loginError").textContent = data.message || "Invalid credentials";
     }
-  } catch { showModal("Connection error", { type:"error" }); }
+  } catch { showModal("Connection error", { type: "error" }); }
 }
 
 async function signup() {
   const username = document.getElementById("signupUsername")?.value?.trim();
-  const email    = document.getElementById("signupEmail")?.value?.trim();
+  const email = document.getElementById("signupEmail")?.value?.trim();
   const password = document.getElementById("signupPassword")?.value;
-  if (!username || !email || !password) { showModal("All fields required", { type:"warning" }); return; }
+  if (!username || !email || !password) { showModal("All fields required", { type: "warning" }); return; }
   try {
-    const res  = await fetch(`${API_BASE}/signup`, {
-      method:"POST", headers:{"Content-Type":"application/json"},
+    const res = await fetch(`${API_BASE}/signup`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, email, password })
     });
     const data = await res.json();
     if (data.success) {
-      showModal("Account created!", { type:"success", onOk: () => {
-        document.getElementById("tabSignIn").click();
-      }});
+      showModal("Account created!", {
+        type: "success", onOk: () => {
+          document.getElementById("tabSignIn").click();
+        }
+      });
     } else {
       document.getElementById("signupError").textContent = data.message || "Signup failed";
     }
-  } catch { showModal("Connection error", { type:"error" }); }
+  } catch { showModal("Connection error", { type: "error" }); }
 }
 
 /* ─── Tab switching on home page ─── */
 function initAuthTabs() {
-  const tabIn  = document.getElementById("tabSignIn");
-  const tabUp  = document.getElementById("tabSignUp");
+  const tabIn = document.getElementById("tabSignIn");
+  const tabUp = document.getElementById("tabSignUp");
   const formIn = document.getElementById("signInForm");
   const formUp = document.getElementById("signUpForm");
   if (!tabIn) return;
