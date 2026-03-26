@@ -1,4 +1,3 @@
-// backend/models/Watchlist.js
 const mongoose = require("mongoose");
 
 const WatchlistSchema = new mongoose.Schema({
