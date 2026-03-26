@@ -1,8 +1,4 @@
-/* ═══════════════════════════════════════
-   PREMIUM GLOWING CURSOR + TRAIL
-   ═══════════════════════════════════════ */
-
-(function() {
+(function () {
   document.addEventListener("DOMContentLoaded", () => {
     // ─── Main Glow ───
     const glow = document.createElement("div");
@@ -16,7 +12,7 @@
       const t = document.createElement("div");
       t.className = "cursor-trail";
       t.style.opacity = "0";
-      t.style.width  = (8 - i) + "px";
+      t.style.width = (8 - i) + "px";
       t.style.height = (8 - i) + "px";
       t.style.background = `rgba(139,92,246,${(0.4 - i * 0.06).toFixed(2)})`;
       document.body.appendChild(t);
@@ -24,7 +20,7 @@
     }
 
     let mouseX = -400, mouseY = -400;
-    let glowX  = -400, glowY  = -400;
+    let glowX = -400, glowY = -400;
     let isHovering = false;
 
     document.addEventListener("mousemove", (e) => {
@@ -47,7 +43,7 @@
       glowX += (mouseX - glowX) * ease;
       glowY += (mouseY - glowY) * ease;
       glow.style.left = glowX + "px";
-      glow.style.top  = glowY + "px";
+      glow.style.top = glowY + "px";
 
       let prevX = mouseX, prevY = mouseY;
       for (let i = 0; i < trails.length; i++) {
@@ -55,8 +51,8 @@
         const speed = 0.15 - i * 0.018;
         t.x += (prevX - t.x) * speed;
         t.y += (prevY - t.y) * speed;
-        t.el.style.left    = t.x + "px";
-        t.el.style.top     = t.y + "px";
+        t.el.style.left = t.x + "px";
+        t.el.style.top = t.y + "px";
         t.el.style.opacity = isHovering ? "0" : String((0.5 - i * 0.07).toFixed(2));
         prevX = t.x; prevY = t.y;
       }
@@ -72,7 +68,7 @@
       const ripple = document.createElement("span");
       ripple.className = "ripple";
       ripple.style.left = (e.clientX - rect.left - 10) + "px";
-      ripple.style.top  = (e.clientY - rect.top  - 10) + "px";
+      ripple.style.top = (e.clientY - rect.top - 10) + "px";
       target.style.position = target.style.position || "relative";
       target.style.overflow = "hidden";
       target.appendChild(ripple);

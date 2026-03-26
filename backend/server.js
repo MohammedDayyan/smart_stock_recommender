@@ -63,13 +63,13 @@ app.post("/signup", async (req, res) => {
 
     await User.create({ username, email, password });
 
-// ✅ ADD THIS
-await Portfolio.create({
-  username,
-  holdings: [],
-  realizedPnL: 0,
-  totalSellProceeds: 0
-});
+
+    await Portfolio.create({
+      username,
+      holdings: [],
+      realizedPnL: 0,
+      totalSellProceeds: 0
+    });
 
     res.json({ success: true });
 
@@ -231,7 +231,7 @@ app.get("/portfolio/with-prices", authMiddleware, async (req, res) => {
 
           const quote = response.data.chart.result[0].indicators.quote[0];
           const closes = quote.close?.filter(v => v != null) || [];
-const price = closes.length ? closes[closes.length - 1] : h.avgBuy;
+          const price = closes.length ? closes[closes.length - 1] : h.avgBuy;
 
           return {
             symbol: h.symbol,
@@ -274,15 +274,15 @@ app.post("/portfolio/buy", authMiddleware, async (req, res) => {
 
     if (stock) {
       // Weighted average buy price
-      const totalQty  = stock.quantity + Number(quantity);
-      stock.avgBuy    = ((stock.avgBuy * stock.quantity) + (Number(price) * Number(quantity))) / totalQty;
-      stock.quantity  = totalQty;
+      const totalQty = stock.quantity + Number(quantity);
+      stock.avgBuy = ((stock.avgBuy * stock.quantity) + (Number(price) * Number(quantity))) / totalQty;
+      stock.quantity = totalQty;
       stock.lastUpdatedAt = new Date();
     } else {
       portfolio.holdings.push({
         symbol,
-        quantity:      Number(quantity),
-        avgBuy:        Number(price),
+        quantity: Number(quantity),
+        avgBuy: Number(price),
         firstBoughtAt: new Date(),
         lastUpdatedAt: new Date()
       });
@@ -293,10 +293,10 @@ app.post("/portfolio/buy", authMiddleware, async (req, res) => {
     await Transaction.create({
       username,
       symbol,
-      type:     "BUY",
-      price:    Number(price),
+      type: "BUY",
+      price: Number(price),
       quantity: Number(quantity),
-      total:    Number(price) * Number(quantity)
+      total: Number(price) * Number(quantity)
     });
 
     res.json({ success: true, message: "Buy recorded" });
@@ -317,27 +317,27 @@ app.post("/portfolio/sell-preview", authMiddleware, async (req, res) => {
     if (!portfolio) return res.json({ error: "No portfolio found" });
 
     const stock = portfolio.holdings.find(s => s.symbol === symbol);
-    if (!stock)                       return res.json({ error: "Stock not in portfolio" });
+    if (!stock) return res.json({ error: "Stock not in portfolio" });
     if (stock.quantity < Number(quantity)) return res.json({ error: "Not enough shares" });
 
-    const qty        = Number(quantity);
-    const sellPrice  = Number(price);
-    const pnl        = (sellPrice - stock.avgBuy) * qty;
-    const pnlPct     = stock.avgBuy > 0 ? (pnl / (stock.avgBuy * qty)) * 100 : 0;
-    const proceeds   = sellPrice * qty;
-    const remaining  = stock.quantity - qty;
+    const qty = Number(quantity);
+    const sellPrice = Number(price);
+    const pnl = (sellPrice - stock.avgBuy) * qty;
+    const pnlPct = stock.avgBuy > 0 ? (pnl / (stock.avgBuy * qty)) * 100 : 0;
+    const proceeds = sellPrice * qty;
+    const remaining = stock.quantity - qty;
 
     res.json({
-      success:      true,
+      success: true,
       symbol,
       sellPrice,
-      avgBuy:       stock.avgBuy,
-      quantity:     qty,
+      avgBuy: stock.avgBuy,
+      quantity: qty,
       proceeds,
-      profitLoss:   pnl,
+      profitLoss: pnl,
       profitLossPct: pnlPct,
       remainingQty: remaining,
-      costBasis:    stock.avgBuy * qty
+      costBasis: stock.avgBuy * qty
     });
 
   } catch (err) {
@@ -361,24 +361,23 @@ app.post("/portfolio/sell", authMiddleware, async (req, res) => {
     if (!portfolio) return res.status(404).json({ error: "Portfolio not found" });
 
     const stock = portfolio.holdings.find(s => s.symbol === symbol);
-    if (!stock)                              return res.status(400).json({ error: "Stock not in portfolio" });
-    if (stock.quantity < Number(quantity))   return res.status(400).json({ error: "Not enough shares" });
+    if (!stock) return res.status(400).json({ error: "Stock not in portfolio" });
+    if (stock.quantity < Number(quantity)) return res.status(400).json({ error: "Not enough shares" });
 
-    const qty        = Number(quantity);
-    const sellPrice  = Number(price);
-    const pnl        = (sellPrice - stock.avgBuy) * qty;
-    const pnlPct     = stock.avgBuy > 0 ? (pnl / (stock.avgBuy * qty)) * 100 : 0;
-    const remaining  = stock.quantity - qty;
-    const avgBuySnap = stock.avgBuy;          // snapshot before mutation
+    const qty = Number(quantity);
+    const sellPrice = Number(price);
+    const pnl = (sellPrice - stock.avgBuy) * qty;
+    const pnlPct = stock.avgBuy > 0 ? (pnl / (stock.avgBuy * qty)) * 100 : 0;
+    const remaining = stock.quantity - qty;
+    const avgBuySnap = stock.avgBuy;
 
     // Reduce or remove holding
-    stock.quantity    = remaining;
+    stock.quantity = remaining;
     stock.lastUpdatedAt = new Date();
-    // avgBuy stays the same on partial sell (FIFO not required here)
 
     // Accumulate realized P&L on the portfolio document
-    portfolio.realizedPnL        = (portfolio.realizedPnL        || 0) + pnl;
-    portfolio.totalSellProceeds  = (portfolio.totalSellProceeds  || 0) + (sellPrice * qty);
+    portfolio.realizedPnL = (portfolio.realizedPnL || 0) + pnl;
+    portfolio.totalSellProceeds = (portfolio.totalSellProceeds || 0) + (sellPrice * qty);
 
     // pre-save hook removes zero-qty holdings automatically
     await portfolio.save();
@@ -386,23 +385,23 @@ app.post("/portfolio/sell", authMiddleware, async (req, res) => {
     await Transaction.create({
       username,
       symbol,
-      type:          "SELL",
-      price:         sellPrice,
-      quantity:      qty,
-      total:         sellPrice * qty,
-      avgBuy:        avgBuySnap,
-      profitLoss:    pnl,
+      type: "SELL",
+      price: sellPrice,
+      quantity: qty,
+      total: sellPrice * qty,
+      avgBuy: avgBuySnap,
+      profitLoss: pnl,
       profitLossPct: pnlPct,
-      remainingQty:  remaining
+      remainingQty: remaining
     });
 
     res.json({
-      success:       true,
-      message:       "Sell recorded",
-      profitLoss:    pnl,
+      success: true,
+      message: "Sell recorded",
+      profitLoss: pnl,
       profitLossPct: pnlPct,
-      remainingQty:  remaining,
-      proceeds:      sellPrice * qty
+      remainingQty: remaining,
+      proceeds: sellPrice * qty
     });
 
   } catch (err) {
@@ -417,10 +416,10 @@ app.get("/portfolio", authMiddleware, async (req, res) => {
   try {
     const portfolio = await Portfolio.findOne({ username });
     res.json({
-  holdings: portfolio?.holdings || [],
-  realizedPnL: portfolio?.realizedPnL || 0,
-  totalSellProceeds: portfolio?.totalSellProceeds || 0
-});
+      holdings: portfolio?.holdings || [],
+      realizedPnL: portfolio?.realizedPnL || 0,
+      totalSellProceeds: portfolio?.totalSellProceeds || 0
+    });
   } catch {
     res.status(500).json({});
   }

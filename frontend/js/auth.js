@@ -17,7 +17,7 @@ function showToast(msg, type = "success") {
 /* ── SIGNUP model of the page of the code of javascript logic for backend ── */
 async function signup() {
   const username = document.getElementById("username")?.value?.trim();
-  const email    = document.getElementById("email")?.value?.trim();
+  const email = document.getElementById("email")?.value?.trim();
   const password = document.getElementById("password")?.value;
 
   if (!username || !email || !password) {
@@ -26,7 +26,7 @@ async function signup() {
   }
 
   try {
-    const res  = await fetch(`${API_URL}/signup`, {
+    const res = await fetch(`${API_URL}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, email, password })
@@ -56,7 +56,7 @@ async function login() {
   }
 
   try {
-    const res  = await fetch(`${API_URL}/login`, {
+    const res = await fetch(`${API_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password })
@@ -64,7 +64,6 @@ async function login() {
     const data = await res.json();
 
     if (data.success && data.token) {
-      // FIX: Store the JWT token (previously only username was stored)
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", username);
       showToast("Welcome back!");
@@ -80,7 +79,6 @@ async function login() {
 
 /* ── LOGOUT ── */
 function logout() {
-  // FIX: Remove both token and username
   localStorage.removeItem("token");
   localStorage.removeItem("username");
   window.location.href = "login.html";

@@ -1,8 +1,4 @@
-/* ═══════════════════════════════════════
-   CUSTOM MODAL — replaces browser alert() method od main code
-   ═══════════════════════════════════════ */
-
-(function() {
+(function () {
   const modalHTML = `
     <div class="modal-overlay" id="customModalOverlay">
       <div class="modal-box">
@@ -31,11 +27,11 @@
 
   let _onOkCallback = null;
 
-  window.showModal = function(message, options = {}) {
+  window.showModal = function (message, options = {}) {
     const overlay = document.getElementById("customModalOverlay");
-    const msgEl   = document.getElementById("customModalMessage");
-    const iconEl  = document.getElementById("customModalIcon");
-    const btnEl   = document.getElementById("customModalBtn");
+    const msgEl = document.getElementById("customModalMessage");
+    const iconEl = document.getElementById("customModalIcon");
+    const btnEl = document.getElementById("customModalBtn");
     if (!overlay) { alert(message); return; }
 
     msgEl.textContent = message;
@@ -46,7 +42,7 @@
     overlay.classList.add("active");
   };
 
-  window.hideModal = function() {
+  window.hideModal = function () {
     const overlay = document.getElementById("customModalOverlay");
     if (overlay) overlay.classList.remove("active");
     if (_onOkCallback) { _onOkCallback(); _onOkCallback = null; }
