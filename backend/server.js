@@ -28,9 +28,13 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
+// Add /api prefix to all routes
+const apiRouter = express.Router();
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
+app.use("/api", apiRouter); // Mount apiRouter to /api prefix
 
 const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
@@ -54,39 +58,79 @@ function authMiddleware(req, res, next) {
 
 /* ---------------- AUTH ---------------- */
 
+// Test endpoint
+apiRouter.get("/test", (req, res) => {
+  res.json({ 
+    message: "Backend is working!",
+    timestamp: new Date().toISOString(),
+    mongodb: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected"
+  });
+});
+
 // SIGNUP
-app.post("/signup", async (req, res) => {
+apiRouter.post("/signup", async (req, res) => {
+  console.log('Signup request received:', req.body);
+  
   const { username, email, password } = req.body;
 
-  if (!username || !email || !password)
+  if (!username || !email || !password) {
+    console.log('Missing fields:', { username: !!username, email: !!email, password: !!password });
     return res.json({ success: false, message: "All fields required" });
+  }
 
   try {
+    console.log('Checking for existing user...');
     const existing = await User.findOne({ $or: [{ username }, { email }] });
+    console.log('Existing user found:', !!existing);
 
     if (existing)
       return res.json({ success: false, message: "User already exists" });
 
-    await User.create({ username, email, password });
+    console.log('Creating new user...');
+    const user = await User.create({ username, email, password });
+    console.log('User created successfully:', user._id);
 
-
-    await Portfolio.create({
+    console.log('Creating portfolio...');
+    const portfolio = await Portfolio.create({
       username,
       holdings: [],
       realizedPnL: 0,
       totalSellProceeds: 0
     });
+    console.log('Portfolio created successfully:', portfolio._id);
 
     res.json({ success: true });
 
   } catch (err) {
-    console.error(err);
-    res.json({ success: false, message: "Error creating user" });
+    console.error('Signup error details:', err);
+    
+    // Handle specific MongoDB errors
+    if (err.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(err.keyValue)[0];
+      return res.json({ 
+        success: false, 
+        message: `${field} already exists` 
+      });
+    }
+    
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(e => e.message);
+      return res.json({ 
+        success: false, 
+        message: messages.join(', ') 
+      });
+    }
+    
+    res.json({ 
+      success: false, 
+      message: "Error creating user: " + err.message 
+    });
   }
 });
 
 // LOGIN
-app.post("/login", async (req, res) => {
+apiRouter.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password)
@@ -117,7 +161,7 @@ app.post("/login", async (req, res) => {
 /* ---------------- STOCK ---------------- */
 
 // Querying Yahoo Finance for real time stock price and metadata
-app.get("/stock/:symbol", async (req, res) => {
+apiRouter.get("/stock/:symbol", async (req, res) => {
   try {
     const symbol = req.params.symbol + ".NS";
 
@@ -139,7 +183,7 @@ app.get("/stock/:symbol", async (req, res) => {
 /* ---------------- FUNDAMENTALS ---------------- */
 
 // To pull key statistics (P/E, debt to equity, ROE etc..)
-app.get("/fundamentals/:symbol", async (req, res) => {
+apiRouter.get("/fundamentals/:symbol", async (req, res) => {
   try {
     const data = await yahooFinance.quoteSummary(req.params.symbol + ".NS", {
       modules: ["financialData", "defaultKeyStatistics"]
@@ -155,7 +199,7 @@ app.get("/fundamentals/:symbol", async (req, res) => {
 /* ---------------- HISTORY ---------------- */
 
 // Market Chart data for graphs and Technical Analysis
-app.get("/history/:symbol/:range", async (req, res) => {
+apiRouter.get("/history/:symbol/:range", async (req, res) => {
   try {
     const now = Math.floor(Date.now() / 1000);
     let period1 = now - 365 * 24 * 60 * 60;
@@ -179,7 +223,7 @@ app.get("/history/:symbol/:range", async (req, res) => {
 
 /* ---------------- WATCHLIST (PROTECTED) ---------------- */
 
-app.post("/watchlist/add", authMiddleware, async (req, res) => {
+apiRouter.post("/watchlist/add", authMiddleware, async (req, res) => {
   const username = req.user.username;
   const { symbol } = req.body;
 
@@ -206,7 +250,7 @@ app.post("/watchlist/add", authMiddleware, async (req, res) => {
   }
 });
 
-app.get("/watchlist", authMiddleware, async (req, res) => {
+apiRouter.get("/watchlist", authMiddleware, async (req, res) => {
   const username = req.user.username;
 
   try {
@@ -220,7 +264,7 @@ app.get("/watchlist", authMiddleware, async (req, res) => {
 /* ---------------- PORTFOLIO (PROTECTED) ---------------- */
 
 // Fetch users holdings with real-time market prices
-app.get("/portfolio/with-prices", authMiddleware, async (req, res) => {
+apiRouter.get("/portfolio/with-prices", authMiddleware, async (req, res) => {
   const username = req.user.username;
 
   try {
@@ -270,7 +314,7 @@ app.get("/portfolio/with-prices", authMiddleware, async (req, res) => {
   }
 });
 
-app.post("/portfolio/buy", authMiddleware, async (req, res) => {
+apiRouter.post("/portfolio/buy", authMiddleware, async (req, res) => {
   const symbol = req.body.symbol.toUpperCase();
   const { price, quantity } = req.body;
   const username = req.user.username;
@@ -319,7 +363,7 @@ app.post("/portfolio/buy", authMiddleware, async (req, res) => {
   }
 });
 
-app.post("/portfolio/sell-preview", authMiddleware, async (req, res) => {
+apiRouter.post("/portfolio/sell-preview", authMiddleware, async (req, res) => {
   let { symbol, price, quantity } = req.body;
   symbol = symbol.toUpperCase();
   const username = req.user.username;
@@ -360,7 +404,7 @@ app.post("/portfolio/sell-preview", authMiddleware, async (req, res) => {
 
 
 /* ── SELL ── */
-app.post("/portfolio/sell", authMiddleware, async (req, res) => {
+apiRouter.post("/portfolio/sell", authMiddleware, async (req, res) => {
   let { symbol, price, quantity } = req.body;
   symbol = symbol.toUpperCase();
   const username = req.user.username;
@@ -422,7 +466,7 @@ app.post("/portfolio/sell", authMiddleware, async (req, res) => {
   }
 });
 
-app.get("/portfolio", authMiddleware, async (req, res) => {
+apiRouter.get("/portfolio", authMiddleware, async (req, res) => {
   const username = req.user.username;
 
   try {
@@ -439,7 +483,7 @@ app.get("/portfolio", authMiddleware, async (req, res) => {
 
 /* ---------------- TRANSACTIONS (PROTECTED) ---------------- */
 
-app.get("/transactions", authMiddleware, async (req, res) => {
+apiRouter.get("/transactions", authMiddleware, async (req, res) => {
   const username = req.user.username;
 
   try {

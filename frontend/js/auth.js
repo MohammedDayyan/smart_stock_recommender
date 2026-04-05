@@ -28,12 +28,20 @@ async function signup() {
   }
 
   try {
+    console.log('Attempting signup to:', `${API_URL}/api/signup`);
+    console.log('Signup data:', { username, email, password: '***' });
+    
     const res = await fetch(`${API_URL}/api/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, email, password })
     });
+    
+    console.log('Response status:', res.status);
+    console.log('Response ok:', res.ok);
+    
     const data = await res.json();
+    console.log('Response data:', data);
 
     if (data.success) {
       showToast("Account created! Redirecting…");
@@ -42,8 +50,8 @@ async function signup() {
       showToast(data.message || "Signup failed", "error");
     }
   } catch (err) {
-    console.error(err);
-    showToast("Something went wrong", "error");
+    console.error('Signup error:', err);
+    showToast("Something went wrong: " + err.message, "error");
   }
 }
 
