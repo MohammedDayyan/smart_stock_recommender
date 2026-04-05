@@ -46,7 +46,7 @@ function isMarketOpen() {
 
 async function fetchStock(symbol) {
   try {
-    const [pRes, fRes] = await Promise.all([fetch(`${API}/stock/${symbol}`), fetch(`${API}/fundamentals/${symbol}`)]);
+    const [pRes, fRes] = await Promise.all([fetch(`${API_URL}/stock/${symbol}`), fetch(`${API_URL}/fundamentals/${symbol}`)]);
     const pd = await pRes.json(), fd = await fRes.json();
     const r = pd.chart?.result?.[0]; if (!r) return null;
     const me = r.meta, q = r.indicators?.quote?.[0];
@@ -70,7 +70,7 @@ async function fetchStock(symbol) {
 
 async function fetchHistory(symbol) {
   try {
-    const d = await (await fetch(`${API}/history/${symbol}/1y`)).json();
+    const d = await (await fetch(`${API_URL}/history/${symbol}/1y`)).json();
     return d.quotes?.map(q => q.close).filter(Boolean) || d.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [];
   } catch { return []; }
 }
@@ -183,7 +183,7 @@ function toggleReview(s) {
 async function addToWatchlist(symbol) {
   if (!getToken()) { showToast("Please login", "error"); return; }
   try {
-    await fetch(`${API}/watchlist/add`, { method: "POST", headers: authHdrs(), body: JSON.stringify({ symbol }) });
+    await fetch(`${API_URL}/watchlist/add`, { method: "POST", headers: authHdrs(), body: JSON.stringify({ symbol }) });
     showToast(`${symbol} added to watchlist`);
   } catch { showToast("Watchlist error", "error"); }
 }
@@ -211,7 +211,7 @@ async function confirmTrade() {
   if (!qty || qty <= 0) { showToast("Enter a valid quantity", "error"); return; }
   const ep = _trade.type === "BUY" ? "/portfolio/buy" : "/portfolio/sell";
   try {
-    const res = await fetch(`${API}${ep}`, { method: "POST", headers: authHdrs(), body: JSON.stringify({ symbol: _trade.stock.symbol, price: _trade.stock.price, quantity: qty }) });
+    const res = await fetch(`${API_URL}${ep}`, { method: "POST", headers: authHdrs(), body: JSON.stringify({ symbol: _trade.stock.symbol, price: _trade.stock.price, quantity: qty }) });
     const data = await res.json();
     if (res.ok) { showToast(`${_trade.type === "BUY" ? "Bought" : "Sold"} ${qty} × ${_trade.stock.symbol}`); closeTradeModal(); }
     else showToast(data.error || data.message || "Trade failed", "error");
