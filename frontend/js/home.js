@@ -1,4 +1,4 @@
-const API_URL = window.location.origin;
+const API_URL = window.location.origin + "/api";
 
 /* ─── Playing Cards Init  of the simulation of the query─── */
 function initPlayingCards(onSelect) {

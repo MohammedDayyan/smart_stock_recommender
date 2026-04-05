@@ -1,4 +1,4 @@
-const API_URL = window.location.origin;
+const API_URL = window.location.origin + "/api";
 
 const POINTS_PER_YEAR = 2520;          // ~252 trading days × 10 ticks
 const HORIZONS = {

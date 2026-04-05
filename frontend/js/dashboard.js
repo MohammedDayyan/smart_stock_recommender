@@ -1,4 +1,4 @@
-const API_URL = window.location.origin;
+const API_URL = window.location.origin + "/api";
 
 const STOCKS = [
   { symbol: "RELIANCE", sector: "Energy" },

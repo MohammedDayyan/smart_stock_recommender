@@ -1,4 +1,4 @@
-const API_URL = window.location.origin;
+const API_URL = window.location.origin + "/api";
 
 function showToast(msg, type = "success") {
   let t = document.getElementById("toast");
