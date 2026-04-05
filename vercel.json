@@ -12,7 +12,7 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/(signup|login|stock|fundamentals|history|watchlist|portfolio|transactions)(.*)",
       "dest": "/backend/server.js"
     },
     {
