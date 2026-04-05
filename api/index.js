@@ -2,16 +2,20 @@ const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const YahooFinance = require("yahoo-finance2").default;
+const YahooFinance = require("yahoo-finance2").default || require("yahoo-finance2");
 const jwt = require("jsonwebtoken");
 
 const SECRET = process.env.JWT_SECRET || "mysecretkey";
 
 /* ---------------- DB ---------------- */
 
-mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/stock_recommender")
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.error("MongoDB Error:", err));
+try {
+  mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/stock_recommender")
+    .then(() => console.log("MongoDB Connected"))
+    .catch(err => console.error("MongoDB Error:", err));
+} catch (error) {
+  console.error("Database connection error:", error);
+}
 
 const User = require("../backend/models/User");
 const Watchlist = require("../backend/models/Watchlist");
@@ -449,6 +453,22 @@ app.get("/debug", (req, res) => {
     node_env: process.env.NODE_ENV || "development",
     timestamp: new Date().toISOString()
   });
+});
+
+/* ---------------- ERROR HANDLER ---------------- */
+
+app.use((err, req, res, next) => {
+  console.error('API Error:', err);
+  res.status(500).json({ 
+    error: "Internal server error", 
+    message: err.message || "Something went wrong" 
+  });
+});
+
+/* ---------------- 404 HANDLER ---------------- */
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Endpoint not found" });
 });
 
 module.exports = app;
