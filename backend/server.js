@@ -23,9 +23,7 @@ const Transaction = require("./models/Transaction");
 
 const app = express();
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-app-name.vercel.app', 'https://your-app-name.onrender.com']
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: '*',
   credentials: true,
   optionsSuccessStatus: 200
 };
