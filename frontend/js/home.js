@@ -16,7 +16,6 @@ function initPlayingCards(onSelect) {
       const tf = card.dataset.timeframe;
       if (tf === current) return;
 
-      // Shuffle siblings of the 
       cards.forEach((c, i) => {
         c.classList.remove("selected", "shuffle-left", "shuffle-right");
         c.classList.add(i % 2 === 0 ? "shuffle-left" : "shuffle-right");
