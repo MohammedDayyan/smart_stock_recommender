@@ -41,7 +41,7 @@ function gbmPath(price, mu, sigma, steps) {
 function projectHorizons(price, mu, sigma) {
   const results = {};
   for (const [label, steps] of Object.entries(HORIZONS)) {
-    // blend recent vs full-history mu (mimics the Python notebook logic)
+    // blend recent vs full-history mu
     const w = steps <= 20 ? 0.8 : steps <= 300 ? 0.5 : 0.0;
     const blended = mu * w + mu * (1 - w);
     const projected = price * Math.exp(
