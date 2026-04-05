@@ -2,6 +2,9 @@ const API_URL = window.location.hostname === 'localhost'
   ? "http://localhost:3000" 
   : window.location.origin;
 
+console.log('Hostname:', window.location.hostname);
+console.log('API URL:', API_URL);
+
 function showToast(msg, type = "success") {
   let t = document.getElementById("toast");
   if (!t) {
