@@ -1,0 +1,30 @@
+services:
+  # Backend API Service
+  - type: web
+    name: smart-stock-recommender-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        fromDatabase:
+          name: smart-stock-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+
+  # MongoDB Database
+  - type: pserv
+    name: smart-stock-db
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.mongo
+    envVars:
+      - key: MONGO_INITDB_ROOT_USERNAME
+        value: admin
+      - key: MONGO_INITDB_ROOT_PASSWORD
+        generateValue: true

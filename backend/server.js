@@ -6,11 +6,11 @@ const path = require("path");
 const YahooFinance = require("yahoo-finance2").default;
 const jwt = require("jsonwebtoken");
 
-const SECRET = "mysecretkey";
+const SECRET = process.env.JWT_SECRET || "mysecretkey";
 
 /* ---------------- DB ---------------- */
 
-mongoose.connect("mongodb://127.0.0.1:27017/stock_recommender")
+mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/stock_recommender")
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.error("MongoDB Error:", err));
 
@@ -22,7 +22,15 @@ const Transaction = require("./models/Transaction");
 /* ---------------- APP ---------------- */
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://your-app-name.vercel.app', 'https://your-app-name.onrender.com']
+    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
 
