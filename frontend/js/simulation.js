@@ -1,4 +1,6 @@
-const API_URL = window.location.origin + "/api";
+const API_URL = window.location.hostname === 'localhost' 
+  ? "http://localhost:3000" 
+  : window.location.origin;
 
 const POINTS_PER_YEAR = 2520;          // ~252 trading days × 10 ticks
 const HORIZONS = {
