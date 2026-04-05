@@ -42,6 +42,10 @@ const corsOptions = {
 };
 
 const app = express();
+
+// Add /api prefix to all routes
+const apiRouter = express.Router();
+
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -75,7 +79,7 @@ function authMiddleware(req, res, next) {
 
 /* ---------------- AUTH ---------------- */
 
-app.post("/signup", async (req, res) => {
+apiRouter.post("/signup", async (req, res) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password)
@@ -104,7 +108,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
+apiRouter.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password)
@@ -134,7 +138,7 @@ app.post("/login", async (req, res) => {
 
 /* ---------------- STOCK ---------------- */
 
-app.get("/stock/:symbol", async (req, res) => {
+apiRouter.get("/stock/:symbol", async (req, res) => {
   try {
     const symbol = req.params.symbol + ".NS";
 
@@ -155,7 +159,7 @@ app.get("/stock/:symbol", async (req, res) => {
 
 /* ---------------- FUNDAMENTALS ---------------- */
 
-app.get("/fundamentals/:symbol", async (req, res) => {
+apiRouter.get("/fundamentals/:symbol", async (req, res) => {
   try {
     if (!yahooFinance) {
       return res.status(500).json({ error: "YahooFinance not available" });
@@ -175,7 +179,7 @@ app.get("/fundamentals/:symbol", async (req, res) => {
 
 /* ---------------- HISTORY ---------------- */
 
-app.get("/history/:symbol/:range", async (req, res) => {
+apiRouter.get("/history/:symbol/:range", async (req, res) => {
   try {
     if (!yahooFinance) {
       return res.status(500).json({ error: "YahooFinance not available" });
@@ -204,7 +208,7 @@ app.get("/history/:symbol/:range", async (req, res) => {
 
 /* ---------------- WATCHLIST (PROTECTED) ---------------- */
 
-app.post("/watchlist/add", authMiddleware, async (req, res) => {
+apiRouter.post("/watchlist/add", authMiddleware, async (req, res) => {
   const username = req.user.username;
   const { symbol } = req.body;
 
@@ -231,7 +235,7 @@ app.post("/watchlist/add", authMiddleware, async (req, res) => {
   }
 });
 
-app.get("/watchlist", authMiddleware, async (req, res) => {
+apiRouter.get("/watchlist", authMiddleware, async (req, res) => {
   const username = req.user.username;
 
   try {
@@ -244,7 +248,7 @@ app.get("/watchlist", authMiddleware, async (req, res) => {
 
 /* ---------------- PORTFOLIO (PROTECTED) ---------------- */
 
-app.get("/portfolio/with-prices", authMiddleware, async (req, res) => {
+apiRouter.get("/portfolio/with-prices", authMiddleware, async (req, res) => {
   const username = req.user.username;
 
   try {
@@ -292,7 +296,7 @@ app.get("/portfolio/with-prices", authMiddleware, async (req, res) => {
   }
 });
 
-app.post("/portfolio/buy", authMiddleware, async (req, res) => {
+apiRouter.post("/portfolio/buy", authMiddleware, async (req, res) => {
   const symbol = req.body.symbol.toUpperCase();
   const { price, quantity } = req.body;
   const username = req.user.username;
@@ -340,7 +344,7 @@ app.post("/portfolio/buy", authMiddleware, async (req, res) => {
   }
 });
 
-app.post("/portfolio/sell-preview", authMiddleware, async (req, res) => {
+apiRouter.post("/portfolio/sell-preview", authMiddleware, async (req, res) => {
   let { symbol, price, quantity } = req.body;
   symbol = symbol.toUpperCase();
   const username = req.user.username;
@@ -379,7 +383,7 @@ app.post("/portfolio/sell-preview", authMiddleware, async (req, res) => {
   }
 });
 
-app.post("/portfolio/sell", authMiddleware, async (req, res) => {
+apiRouter.post("/portfolio/sell", authMiddleware, async (req, res) => {
   let { symbol, price, quantity } = req.body;
   symbol = symbol.toUpperCase();
   const username = req.user.username;
@@ -438,7 +442,7 @@ app.post("/portfolio/sell", authMiddleware, async (req, res) => {
   }
 });
 
-app.get("/portfolio", authMiddleware, async (req, res) => {
+apiRouter.get("/portfolio", authMiddleware, async (req, res) => {
   const username = req.user.username;
 
   try {
@@ -455,7 +459,7 @@ app.get("/portfolio", authMiddleware, async (req, res) => {
 
 /* ---------------- TRANSACTIONS (PROTECTED) ---------------- */
 
-app.get("/transactions", authMiddleware, async (req, res) => {
+apiRouter.get("/transactions", authMiddleware, async (req, res) => {
   const username = req.user.username;
 
   try {
@@ -468,13 +472,13 @@ app.get("/transactions", authMiddleware, async (req, res) => {
 
 /* ---------------- TEST ---------------- */
 
-app.get("/test", (req, res) => {
+apiRouter.get("/test", (req, res) => {
   res.json({ message: "API is working correctly!" });
 });
 
 /* ---------------- DEBUG ---------------- */
 
-app.get("/debug", (req, res) => {
+apiRouter.get("/debug", (req, res) => {
   res.json({
     message: "API is working",
     mongodb_uri: process.env.MONGODB_URI ? "Set" : "Not set",
@@ -486,7 +490,7 @@ app.get("/debug", (req, res) => {
 
 /* ---------------- ERROR HANDLER ---------------- */
 
-app.use((err, req, res, next) => {
+apiRouter.use((err, req, res, next) => {
   console.error('API Error:', err);
   res.status(500).json({ 
     error: "Internal server error", 
@@ -496,8 +500,11 @@ app.use((err, req, res, next) => {
 
 /* ---------------- 404 HANDLER ---------------- */
 
-app.use((req, res) => {
+apiRouter.use((req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
+
+// Mount the API router with /api prefix
+app.use("/api", apiRouter);
 
 module.exports = app;

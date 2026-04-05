@@ -1,6 +1,6 @@
 const API_URL = window.location.hostname === 'localhost' 
   ? "http://localhost:3000" 
-  : window.location.origin;
+  : "";
 
 const STOCKS = [
   { symbol: "RELIANCE", sector: "Energy" },

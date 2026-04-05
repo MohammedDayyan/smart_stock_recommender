@@ -1,9 +1,6 @@
 const API_URL = window.location.hostname === 'localhost' 
   ? "http://localhost:3000" 
-  : window.location.origin;
-
-console.log('Hostname:', window.location.hostname);
-console.log('API URL:', API_URL);
+  : "";
 
 function showToast(msg, type = "success") {
   let t = document.getElementById("toast");
@@ -31,7 +28,7 @@ async function signup() {
   }
 
   try {
-    const res = await fetch(`${API_URL}/signup`, {
+    const res = await fetch(`${API_URL}/api/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, email, password })
@@ -61,7 +58,7 @@ async function login() {
   }
 
   try {
-    const res = await fetch(`${API_URL}/login`, {
+    const res = await fetch(`${API_URL}/api/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password })
