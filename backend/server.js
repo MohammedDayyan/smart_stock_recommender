@@ -103,6 +103,9 @@ apiRouter.post("/signup", async (req, res) => {
 
   } catch (err) {
     console.error('Signup error details:', err);
+    console.error('Error code:', err.code);
+    console.error('Error name:', err.name);
+    console.error('Error message:', err.message);
     
     // Handle specific MongoDB errors
     if (err.code === 11000) {
@@ -122,9 +125,10 @@ apiRouter.post("/signup", async (req, res) => {
       });
     }
     
-    res.json({ 
+    // Return the actual error message for debugging
+    return res.json({ 
       success: false, 
-      message: "Error creating user: " + err.message 
+      message: err.message || "Error creating user" 
     });
   }
 });
