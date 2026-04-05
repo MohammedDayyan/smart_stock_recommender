@@ -12,12 +12,8 @@
   ],
   "routes": [
     {
-      "src": "/(signup|login|stock|fundamentals|history|watchlist|portfolio|transactions)(.*)",
-      "dest": "/backend/server.js"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/frontend/$1"
+      "dest": "/backend/server.js"
     }
   ]
 }
