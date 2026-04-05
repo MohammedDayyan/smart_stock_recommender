@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3000";
+const API_URL = window.location.origin;
 
 /* ─── Playing Cards Init  of the simulation of the query─── */
 function initPlayingCards(onSelect) {

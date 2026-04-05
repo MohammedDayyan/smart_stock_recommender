@@ -1,4 +1,4 @@
-const API = "http://localhost:3000";
+const API_URL = window.location.origin;
 
 const STOCKS = [
   { symbol: "RELIANCE", sector: "Energy" },

@@ -1,4 +1,4 @@
-const SIM_API = "http://localhost:3000";
+const API_URL = window.location.origin;
 
 const POINTS_PER_YEAR = 2520;          // ~252 trading days × 10 ticks
 const HORIZONS = {
