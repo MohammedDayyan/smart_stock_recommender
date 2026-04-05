@@ -21,9 +21,7 @@ const Transaction = require("../backend/models/Transaction");
 /* ---------------- APP ---------------- */
 
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-app-name.vercel.app', 'https://your-app-name.onrender.com']
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: '*',
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -432,6 +430,30 @@ app.get("/transactions", authMiddleware, async (req, res) => {
     res.json(tx);
   } catch {
     res.json([]);
+  }
+});
+
+/* ---------------- DEBUG ---------------- */
+
+app.get("/debug", async (req, res) => {
+  try {
+    const dbStatus = mongoose.connection.readyState;
+    const dbStates = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting'
+    };
+    
+    res.json({
+      message: "Debug info",
+      mongodb_status: dbStates[dbStatus],
+      mongodb_uri: process.env.MONGODB_URI ? "Set" : "Not set",
+      jwt_secret: process.env.JWT_SECRET ? "Set" : "Not set",
+      node_env: process.env.NODE_ENV || "development"
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
