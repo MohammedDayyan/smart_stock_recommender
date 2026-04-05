@@ -452,6 +452,30 @@ app.get("/transactions", authMiddleware, async (req, res) => {
   }
 });
 
+/* ---------------- DEBUG ---------------- */
+
+app.get("/debug", async (req, res) => {
+  try {
+    const dbStatus = mongoose.connection.readyState;
+    const dbStates = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting'
+    };
+    
+    res.json({
+      message: "Debug info",
+      mongodb_status: dbStates[dbStatus],
+      mongodb_uri: process.env.MONGODB_URI ? "Set" : "Not set",
+      jwt_secret: process.env.JWT_SECRET ? "Set" : "Not set",
+      node_env: process.env.NODE_ENV || "development"
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 /* ---------------- ROOT ---------------- */
 
 app.get("/", (req, res) => {
