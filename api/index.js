@@ -9,7 +9,7 @@ const SECRET = process.env.JWT_SECRET || "mysecretkey";
 
 /* ---------------- DB ---------------- */
 
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/stock_recommender")
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.error("MongoDB Error:", err));
 
@@ -433,28 +433,22 @@ app.get("/transactions", authMiddleware, async (req, res) => {
   }
 });
 
+/* ---------------- TEST ---------------- */
+
+app.get("/test", (req, res) => {
+  res.json({ message: "API is working correctly!" });
+});
+
 /* ---------------- DEBUG ---------------- */
 
-app.get("/debug", async (req, res) => {
-  try {
-    const dbStatus = mongoose.connection.readyState;
-    const dbStates = {
-      0: 'disconnected',
-      1: 'connected',
-      2: 'connecting',
-      3: 'disconnecting'
-    };
-    
-    res.json({
-      message: "Debug info",
-      mongodb_status: dbStates[dbStatus],
-      mongodb_uri: process.env.MONGODB_URI ? "Set" : "Not set",
-      jwt_secret: process.env.JWT_SECRET ? "Set" : "Not set",
-      node_env: process.env.NODE_ENV || "development"
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+app.get("/debug", (req, res) => {
+  res.json({
+    message: "API is working",
+    mongodb_uri: process.env.MONGODB_URI ? "Set" : "Not set",
+    jwt_secret: process.env.JWT_SECRET ? "Set" : "Not set",
+    node_env: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString()
+  });
 });
 
 module.exports = app;
