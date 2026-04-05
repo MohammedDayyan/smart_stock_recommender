@@ -2,8 +2,19 @@ const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const YahooFinance = require("yahoo-finance2").default || require("yahoo-finance2");
 const jwt = require("jsonwebtoken");
+
+// Try different import methods for YahooFinance
+let YahooFinance;
+try {
+  YahooFinance = require("yahoo-finance2").default;
+} catch (e) {
+  try {
+    YahooFinance = require("yahoo-finance2");
+  } catch (e2) {
+    console.error("YahooFinance import failed:", e2.message);
+  }
+}
 
 const SECRET = process.env.JWT_SECRET || "mysecretkey";
 
@@ -34,7 +45,15 @@ const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
 
-const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
+// Initialize YahooFinance if available
+let yahooFinance;
+if (YahooFinance) {
+  try {
+    yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
+  } catch (e) {
+    console.error("YahooFinance initialization failed:", e.message);
+  }
+}
 
 /* ---------------- AUTH MIDDLEWARE ---------------- */
 
@@ -138,6 +157,10 @@ app.get("/stock/:symbol", async (req, res) => {
 
 app.get("/fundamentals/:symbol", async (req, res) => {
   try {
+    if (!yahooFinance) {
+      return res.status(500).json({ error: "YahooFinance not available" });
+    }
+    
     const data = await yahooFinance.quoteSummary(req.params.symbol + ".NS", {
       modules: ["financialData", "defaultKeyStatistics"]
     });
@@ -145,6 +168,7 @@ app.get("/fundamentals/:symbol", async (req, res) => {
     res.json({ quoteSummary: { result: [data] } });
 
   } catch (err) {
+    console.error("Fundamentals error:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -153,6 +177,10 @@ app.get("/fundamentals/:symbol", async (req, res) => {
 
 app.get("/history/:symbol/:range", async (req, res) => {
   try {
+    if (!yahooFinance) {
+      return res.status(500).json({ error: "YahooFinance not available" });
+    }
+    
     const now = Math.floor(Date.now() / 1000);
     let period1 = now - 365 * 24 * 60 * 60;
 
@@ -169,6 +197,7 @@ app.get("/history/:symbol/:range", async (req, res) => {
     res.json(result);
 
   } catch (err) {
+    console.error("History error:", err);
     res.status(500).json({ error: err.message });
   }
 });
