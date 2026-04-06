@@ -3,7 +3,7 @@ const testAPI = async () => {
   try {
     console.log('Testing API endpoints...');
     
-    // Test signup
+    // Test sign
     const signupRes = await fetch('/api/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
