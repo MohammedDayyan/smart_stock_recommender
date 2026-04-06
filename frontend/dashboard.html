@@ -123,7 +123,7 @@
     .chat-send:hover { transform: scale(1.08); }
     .chat-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-    /* Quick prompts shown the pointer of the system of dashoard */
+  
     .chat-quick {
       display: flex; gap: 6px; flex-wrap: wrap;
       padding: 8px 14px 0;
@@ -136,7 +136,7 @@
     }
     .quick-btn:hover { border-color: rgba(139,92,246,0.4); color: #a78bfa; }
 
-    /* Section header override for dashboard */
+  
     .dash-section {
       padding: 0 2rem 2rem;
     }
@@ -283,7 +283,7 @@
     }
     .sim-hist-btn:hover { opacity: 0.88; }
 
-    /* Stock card click hint */
+  
     .stock-card { cursor: pointer; }
     .stock-card::after {
       content: "Click for simulation →";
@@ -300,7 +300,7 @@
     }
     .stock-card:hover::after { opacity: 1; }
 
-    /* ── Sections from home page ── */
+  
     .screening-track {
       display: flex; gap: 28px; width: max-content;
       animation: scrollLeft 28s linear infinite;
@@ -391,11 +391,11 @@
     </div>
   </div>
 
-  <!-- ══ TOP NAV ══ -->
+
   <header style="position:sticky;top:0;z-index:100;">
     <div class="top-navbar">
       <a href="dashboard.html" style="text-decoration:none;">
-        <div class="logo"><span class="logo-first">S</span><span class="logo-rest">tockify</span></div>
+        <div class="logo"><span class="logo-first">S</span><span class="logo-rest">Stockify</span></div>
       </a>
       <div class="search-bar">
         <span style="color:#888;font-size:14px;">🔍</span>
@@ -419,7 +419,7 @@
     </div>
   </header>
 
-  <!-- ══ HERO STRIP ══ -->
+
   <div class="hero-strip">
     <div class="hero-title">
       Smart Stock&nbsp;<span>Recommender</span>
@@ -429,10 +429,10 @@
     </div>
   </div>
 
-  <!-- ══ PLAYING CARDS — Timeframe Selector ══ -->
+
   <section class="timeframe-selector-section">
     <h2 style="text-align:center;background:linear-gradient(135deg,#8b5cf6,#ec4899);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-size:2rem;margin-bottom:8px;font-weight:800;">Select Timeframe</h2>
-    <p style="text-align:center;color:var(--text-muted);margin-bottom:36px;font-size:0.95rem;">Pick a card to see the top 5 AI-ranked stocks</p>
+    <p style="text-align:center;color:var(--text-muted);margin-bottom:36px;font-size:0.95rem;">Pick a card to see the top 5 GBW-ranked stocks</p>
 
     <div class="playing-cards-deck" id="cardsDeck">
       <div class="playing-card" data-timeframe="1D">
@@ -514,7 +514,7 @@
   <div class="dash-section">
     <div class="dash-section-header">
       <div class="dash-section-title" id="gridTitle">1-Year Growth</div>
-      <span style="font-size:12px;color:var(--text-muted);">Top 5 AI-ranked stocks</span>
+      <span style="font-size:12px;color:var(--text-muted);">Top 5 GBW-ranked stocks</span>
     </div>
     <div class="stock-grid" id="stockGrid"></div>
   </div>
@@ -544,10 +544,10 @@
   <section class="saas-features-section" style="margin-top:80px;padding:0 2rem;">
     <div style="text-align:center;margin-bottom:50px;">
       <h2 style="font-size:2.4rem;color:#fff;margin-bottom:14px;font-weight:800;letter-spacing:-0.5px;">Powerful Tools for Smart Investors</h2>
-      <p style="color:#94a3b8;font-size:1.05rem;max-width:580px;margin:0 auto;">Everything you need to analyze, simulate, and build a winning portfolio using AI.</p>
+      <p style="color:#94a3b8;font-size:1.05rem;max-width:580px;margin:0 auto;">Everything you need to analyze, simulate, and build a winning portfolio using Stockify.</p>
     </div>
     <div class="features-grid">
-      <div class="saas-glass-card"><div class="card-icon">🧠</div><h3>Smart Recommendations</h3><p>AI-powered algorithms analyze market trends and fundamentals to give you top stock picks instantly.</p></div>
+      <div class="saas-glass-card"><div class="card-icon">🧠</div><h3>Smart Recommendations</h3><p>GBW-powered algorithms analyze market trends and fundamentals to give you top stock picks instantly.</p></div>
       <div class="saas-glass-card"><div class="card-icon">⚠️</div><h3>Risk Alerts</h3><p>Dynamic volatility warnings tailored to your profile. Never get caught off guard by a sudden crash.</p></div>
       <div class="saas-glass-card"><div class="card-icon">⚡</div><h3>Real-Time Simulation</h3><p>Watch market fluctuations in a gamified, high-frequency simulated environment directly in your browser.</p></div>
       <div class="saas-glass-card"><div class="card-icon">💼</div><h3>Portfolio Tracking</h3><p>Visualize your asset allocation, historical performance, and track your gains in real time.</p></div>
@@ -559,7 +559,7 @@
   <!-- ══ STOCKIFY IN ACTION VIDEO ══ -->
   <section style="margin-top:80px;text-align:center;width:100vw;position:relative;left:50%;right:50%;margin-left:-50vw;margin-right:-50vw;background:#0f172a;padding:60px 0;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);">
     <h2 style="color:#8b5cf6;font-size:2.4rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;">Stockify in Action</h2>
-    <p style="color:#64748b;font-size:1rem;margin-bottom:32px;">Watch the platform live — real-time recommendations, portfolio tracking, and AI insights</p>
+    <p style="color:#64748b;font-size:1rem;margin-bottom:32px;">Watch the platform live — real-time recommendations, portfolio tracking, and stock insights</p>
     <div style="width:100%;display:flex;justify-content:center;background:#000;box-shadow:inset 0 0 60px rgba(0,0,0,0.8);">
       <video width="100%" autoplay loop muted playsinline
         style="display:block;width:100vw;max-height:82vh;object-fit:cover;">
@@ -600,7 +600,7 @@
       </div>
       <div>
         <h3 style="font-size:4.2rem;color:#fff;font-weight:300;font-family:'Georgia',serif;margin-bottom:10px;letter-spacing:-2px;">2M+</h3>
-        <p style="color:#cbd5e1;font-size:1.05rem;font-weight:600;">AI Stock Simulations Run Daily</p>
+        <p style="color:#cbd5e1;font-size:1.05rem;font-weight:600;">Smart Stock Simulations Run Daily</p>
       </div>
       <div>
         <h3 style="font-size:4.2rem;color:#fff;font-weight:300;font-family:'Georgia',serif;margin-bottom:10px;letter-spacing:-2px;">95%+</h3>
@@ -692,7 +692,7 @@
           <div class="faq-icon"><span></span><span></span></div>
         </div>
         <div class="faq-answer">
-          <p>Our AI engine synthesizes technical indicators, momentum metrics, and historical volatility to curate the top 5 stock picks mathematically tailored to your chosen timeframe and risk profile.</p>
+          <p>Our Smart engine synthesizes technical indicators, momentum metrics, and historical volatility to curate the top 5 stock picks mathematically tailored to your chosen timeframe and risk profile.</p>
         </div>
       </div>
 
@@ -718,7 +718,7 @@
 
       <div class="faq-item">
         <div class="faq-question">
-          <span>How does the AI scoring work?</span>
+          <span>How does the stock-picking scoring work?</span>
           <div class="faq-icon"><span></span><span></span></div>
         </div>
         <div class="faq-answer">
@@ -777,7 +777,7 @@
       <div style="display:flex;width:47%;min-width:340px;background:#1e293b;border-radius:10px;overflow:visible;position:relative;box-shadow:0 15px 30px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.06);margin-top:36px;">
         <h3 style="position:absolute;top:-30px;right:0;color:#3b82f6;font-size:1rem;font-weight:700;">Ms. Taniya Sharma, New Delhi</h3>
         <div style="padding:24px 22px;flex:1;border-right:2px solid #ea580c;">
-          <p style="color:#e2e8f0;font-size:0.92rem;line-height:1.7;font-weight:500;">Stockify is the best. From account opening to live trading — it's the only platform I need to enter and trade in the Indian Share Market. The AI recommendations are genuinely impressive!</p>
+          <p style="color:#e2e8f0;font-size:0.92rem;line-height:1.7;font-weight:500;">Stockify is the best. From account opening to live trading — it's the only platform I need to enter and trade in the Indian Share Market. The Smart recommendations are genuinely impressive!</p>
         </div>
         <div style="width:130px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);display:flex;align-items:center;justify-content:center;clip-path:polygon(20% 0,100% 0,100% 100%,0 100%);border-top-right-radius:10px;border-bottom-right-radius:10px;flex-shrink:0;">
           <span style="font-size:3.2rem;">👩🏽</span>
@@ -910,7 +910,7 @@
   </div>
 
   <!-- ══ AI CHATBOT ══ -->
-  <button class="chat-fab" id="chatFab" title="Ask Stockify AI">
+  <button class="chat-fab" id="chatFab" title="Ask Stockify Recommender">
     🤖
     <span class="chat-badge"></span>
   </button>
@@ -919,13 +919,13 @@
     <div class="chat-header">
       <div class="chat-avatar">🤖</div>
       <div class="chat-header-info">
-        <div class="chat-header-name">Stockify AI</div>
+        <div class="chat-header-name">Stockify Recommender</div>
         <div class="chat-header-status">Online</div>
       </div>
       <button class="chat-close-btn" id="chatClose">✕</button>
     </div>
     <div class="chat-messages" id="chatMessages">
-      <div class="chat-msg bot">👋 Hi! I'm Stockify AI. Ask me anything about stocks, market trends, or your portfolio!</div>
+      <div class="chat-msg bot">👋 Hi! I'm Stockify Smart Recommender. Ask me anything about stocks, market trends, or your portfolio!</div>
     </div>
     <div class="chat-quick">
       <button class="quick-btn" onclick="sendQuick('Best IT stocks right now?')">IT stocks?</button>
