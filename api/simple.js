@@ -3,7 +3,7 @@ const cors = require("cors");
 
 const app = express();
 
-// Allow all origins
+// Allow all origins for the code  in backend logic as simple.js
 app.use(cors());
 app.use(express.json());
 
