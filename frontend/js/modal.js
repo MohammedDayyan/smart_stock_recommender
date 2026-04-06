@@ -1,5 +1,14 @@
 
-
+(function () {
+  const modalHTML = `
+    <div class="modal-overlay" id="customModalOverlay">
+      <div class="modal-box">
+        <span class="modal-icon" id="customModalIcon">⚠️</span>
+        <p class="modal-message" id="customModalMessage">Alert message</p>
+        <button class="modal-btn" id="customModalBtn">OK</button>
+      </div>
+    </div>
+  `;
   document.addEventListener("DOMContentLoaded", () => {
     const wrapper = document.createElement("div");
     wrapper.innerHTML = modalHTML;
