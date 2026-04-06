@@ -9,14 +9,13 @@
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/modal.css">
   <style>
-    /* ── Portfolio sections palette ── */
     :root {
       --pc: #1a2440;
       --pb: #223058;
       --pd: #2d3f6b;
     }
 
-    /* ── P-Card ── */
+  
     .p-card {
       background: var(--pb);
       border: 1px solid var(--pd);
@@ -51,7 +50,7 @@
     .summary-val   { font-size: 1.55rem; font-weight: 700; color: #fff; font-family: var(--mono); }
     .summary-sub   { font-size: 0.76rem; color: var(--accent-green); margin-top: 4px; }
 
-    /* ── CSS Treemap ── */
+  
     .css-treemap {
       display: flex; flex-wrap: wrap;
       height: 220px; gap: 3px; border-radius: 8px; overflow: hidden;
@@ -64,7 +63,6 @@
     }
     .t-node:hover { opacity: 0.85; }
 
-    /* ── Heatmap grid ── */
     .style-grid {
       display: grid;
       grid-template-columns: 52px 1fr 1fr 1fr;
@@ -83,7 +81,6 @@
     .sg-cell.med    { background: rgba(59,130,246,0.42); }
     .sg-cell.active { background: rgba(59,130,246,0.78); }
 
-    /* ── Sector Table ── */
     .p-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
     .p-table th {
       text-align: left; padding: 9px 10px;
@@ -99,7 +96,6 @@
     .dot-green  { background: var(--accent-green); }
     .dot-yellow { background: #eab308; }
 
-    /* ── Year filter ── */
     .year-filter a {
       color: #94a3b8; text-decoration: none;
       font-size: 0.85rem; padding: 4px 10px; border-radius: 6px;
@@ -109,7 +105,6 @@
       color: #3b82f6; background: rgba(59,130,246,0.1);
     }
 
-    /* ── Watchlist Table (existing) ── */
     .wl-section-title {
       font-size: 0.82rem; font-weight: 700;
       letter-spacing: 0.1em; text-transform: uppercase;
@@ -151,7 +146,6 @@
     .change-chip.up   { background:rgba(45,212,138,0.1); color:#2DD48A; }
     .change-chip.down { background:rgba(242,83,106,0.1); color:#F2536A; }
 
-    /* ── Drawer (existing) ── */
     .drawer-overlay {
       position:fixed; inset:0; background:rgba(0,0,0,0.65);
       backdrop-filter:blur(4px); z-index:400;
@@ -254,7 +248,6 @@
   <!-- ══ MAIN CONTENT ══ -->
   <main class="main-content" style="background:#0f1624;">
 
-    <!-- ── Page Header ── -->
     <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--pd,#2d3f6b);padding-bottom:14px;margin-bottom:22px;flex-wrap:wrap;gap:12px;">
       <div>
         <h2 style="font-size:1.7rem;font-weight:700;margin:0;color:#fff;letter-spacing:-0.5px;">Sector Performance Portfolio</h2>
@@ -317,13 +310,11 @@
       </div>
     </div>
 
-    <!-- ══ PORTFOLIO GRID ══ -->
-    <div class="portfolio-grid">
 
-      <!-- ── Left Column ── -->
+    <div class="portfolio-grid">
+      
       <div style="display:flex;flex-direction:column;gap:18px;">
 
-        <!-- Portfolio Activity Summary -->
         <div class="p-card">
           <div class="p-title">Portfolio Activity Summary</div>
           <div class="summary-grid">
@@ -348,11 +339,10 @@
           </div>
         </div>
 
-        <!-- CSS Treemap — Allocation by Sector -->
         <div class="p-card" style="flex:1;">
           <div class="p-title">Allocation — Sector (Watchlist)</div>
           <div class="css-treemap" id="treemapEl">
-            <!-- injected by JS -->
+            
             <div class="t-node" style="width:55%;height:100%;background:#0284c7;">IT (Loading…)</div>
             <div style="width:calc(45% - 3px);height:100%;display:flex;flex-direction:column;gap:3px;">
               <div class="t-node" style="width:100%;height:38%;background:#65a30d;">Banking</div>
@@ -368,10 +358,9 @@
         </div>
       </div>
 
-      <!-- ── Middle Column ── -->
+  
       <div style="display:flex;flex-direction:column;gap:18px;">
 
-        <!-- Performance Chart -->
         <div class="p-card" style="padding-bottom:16px;">
           <div class="p-title" style="border:none;padding-bottom:4px;">Performance</div>
           <div style="font-size:0.9rem;font-weight:700;margin-bottom:12px;color:#fff;">Portfolio Performance vs NIFTY 50</div>
@@ -404,10 +393,8 @@
         </div>
       </div>
 
-      <!-- ── Right Column ── -->
       <div style="display:flex;flex-direction:column;gap:18px;">
 
-        <!-- Investment Style Heatmap -->
         <div class="p-card">
           <div class="p-title">Investment Style — Shares</div>
           <div class="style-grid">
@@ -450,7 +437,7 @@
     </div>
 
     <div id="wlContent">
-      <!-- skeleton -->
+    
       <div style="display:flex;flex-direction:column;gap:8px;">
         <div style="height:58px;background:#1a2440;border-radius:10px;animation:shimmer 1.5s infinite;background-size:200% 100%;background-image:linear-gradient(90deg,#1a2440 25%,#223058 50%,#1a2440 75%);"></div>
         <div style="height:58px;background:#1a2440;border-radius:10px;animation:shimmer 1.5s infinite;background-size:200% 100%;background-image:linear-gradient(90deg,#1a2440 25%,#223058 50%,#1a2440 75%);"></div>
@@ -651,7 +638,7 @@
 
   /* ── Performance & Pie Charts ── */
   function initCharts(wlCount) {
-    /* Performance */
+  
     const perfCtx=document.getElementById("wlPerfChart").getContext("2d");
     const pGrad=perfCtx.createLinearGradient(0,0,0,220);
     pGrad.addColorStop(0,"rgba(139,92,246,0.35)");
@@ -677,7 +664,6 @@
       }
     });
 
-    /* Pie */
     const pieCtx=document.getElementById("wlPieChart").getContext("2d");
     new Chart(pieCtx,{
       type:"pie",
@@ -696,7 +682,7 @@
     });
   }
 
-  /* ── Render summary cards ── */
+    
   function renderSummary(symbols, prices) {
     const totalDayPnl = prices.reduce((acc,p)=>acc+(p?(p.price-p.open):0),0);
     const up = totalDayPnl >= 0;
@@ -797,7 +783,7 @@
       return;
     }
 
-    /* skeleton rows */
+  
     content.innerHTML = `
       <table class="wl-table">
         <thead><tr>
@@ -811,7 +797,7 @@
 
     const prices = await Promise.all(symbols.map(fetchPrice));
 
-    /* Summary + Treemap + Table */
+  
     renderSummary(symbols, prices);
     renderTreemap(symbols);
     renderSectorTable(symbols, prices);
@@ -843,7 +829,7 @@
         </tr>`;
     }).join("");
 
-    /* sparklines + chart swap on click */
+  
     symbols.forEach(async (sym,i) => {
       const canvas=document.getElementById("mc-"+sym);
       if (!canvas) return;
@@ -852,11 +838,10 @@
     });
   }
 
-  /* ── Drawer ── */
   let _drawerSym=null, _drawerPrice=0;
 
   async function openWlDrawer(symbol) {
-    /* Also update TradingView chart */
+    
     if (typeof changeWatchlistChart==="function") changeWatchlistChart(symbol);
 
     _drawerSym=symbol;
@@ -922,7 +907,6 @@
     } catch { showToast("Remove failed","error"); }
   }
 
-  /* ── Trade Modal ── */
   let _trade=null;
   function openTradeModal(symbol,type) {
     if (!localStorage.getItem("token")) { showToast("Please login","error"); return; }
@@ -954,7 +938,6 @@
   document.getElementById("tradeCancelBtn").addEventListener("click", closeTradeModal);
   document.getElementById("tradeModal").addEventListener("click", e=>{ if(e.target===document.getElementById("tradeModal")) closeTradeModal(); });
 
-  /* ── Year filter (UI only) ── */
   document.querySelectorAll(".year-filter a").forEach(a=>{
     a.addEventListener("click",e=>{
       e.preventDefault();
@@ -963,7 +946,6 @@
     });
   });
 
-  /* ── INIT ── */
   renderWatchlist();
   </script>
 </body>
