@@ -1,4 +1,4 @@
-//readmi
+
 # Smart Stock Recommender
 
 A full-stack web application that provides intelligent stock recommendations and portfolio management capabilities. This platform leverages real-time market data from Yahoo Finance to help users make informed investment decisions.
