@@ -35,7 +35,7 @@ const apiRouter = express.Router();
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
-app.use("/api", apiRouter); // Mount apiRouter to /api prefix
+app.use("/api", apiRouter); 
 
 const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
@@ -50,7 +50,7 @@ function authMiddleware(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, SECRET);
-    req.user = decoded; // { username }
+    req.user = decoded;
     next();
   } catch {
     return res.status(401).json({ error: "Invalid token" });
@@ -110,7 +110,6 @@ apiRouter.post("/signup", async (req, res) => {
     
     // Handle specific MongoDB errors
     if (err.code === 11000) {
-      // Duplicate key error
       const field = Object.keys(err.keyValue)[0];
       return res.json({ 
         success: false, 
@@ -126,7 +125,6 @@ apiRouter.post("/signup", async (req, res) => {
       });
     }
     
-    // Return the actual error message for debugging
     return res.json({ 
       success: false, 
       message: err.message || "Error creating user" 
@@ -334,7 +332,6 @@ apiRouter.post("/portfolio/buy", authMiddleware, async (req, res) => {
     let stock = portfolio.holdings.find(s => s.symbol === symbol);
 
     if (stock) {
-      // Weighted average buy price
       const totalQty = stock.quantity + Number(quantity);
       stock.avgBuy = ((stock.avgBuy * stock.quantity) + (Number(price) * Number(quantity))) / totalQty;
       stock.quantity = totalQty;
@@ -408,7 +405,6 @@ apiRouter.post("/portfolio/sell-preview", authMiddleware, async (req, res) => {
 });
 
 
-/* ── SELL ── */
 apiRouter.post("/portfolio/sell", authMiddleware, async (req, res) => {
   let { symbol, price, quantity } = req.body;
   symbol = symbol.toUpperCase();
@@ -432,15 +428,12 @@ apiRouter.post("/portfolio/sell", authMiddleware, async (req, res) => {
     const remaining = stock.quantity - qty;
     const avgBuySnap = stock.avgBuy;
 
-    // Reduce or remove holding
     stock.quantity = remaining;
     stock.lastUpdatedAt = new Date();
 
-    // Accumulate realized P&L on the portfolio document
     portfolio.realizedPnL = (portfolio.realizedPnL || 0) + pnl;
     portfolio.totalSellProceeds = (portfolio.totalSellProceeds || 0) + (sellPrice * qty);
 
-    // pre-save hook removes zero-qty holdings automatically
     await portfolio.save();
 
     await Transaction.create({
@@ -506,7 +499,6 @@ const PORT = process.env.PORT || 3000;
 // For Vercel serverless deployment
 module.exports = app;
 
-// For local development
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
