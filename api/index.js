@@ -4,7 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 
-// Try different import methods for YahooFinance
+// Try different import methods for YahooFinance api for simulation and prediction
 let YahooFinance;
 try {
   YahooFinance = require("yahoo-finance2").default;
