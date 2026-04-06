@@ -8,14 +8,13 @@ const TransactionSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   total: { type: Number, required: true },
 
-  /* ── Enriched fields ── */
   avgBuy: {
     type: Number,
-    default: null          // avg cost basis at time of SELL — helps calculate P&L
+    default: null        
   },
   profitLoss: {
     type: Number,
-    default: null          // (sellPrice - avgBuy) × qty  — only set on SELL
+    default: null         
   },
   profitLossPct: {
     type: Number,
@@ -32,7 +31,6 @@ const TransactionSchema = new mongoose.Schema({
   time: { type: Date, default: Date.now, index: true }
 });
 
-/* ── Compound index for fast user history lookups ── */
 TransactionSchema.index({ username: 1, time: -1 });
 TransactionSchema.index({ username: 1, symbol: 1 });
 
