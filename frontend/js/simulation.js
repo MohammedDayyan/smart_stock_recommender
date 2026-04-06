@@ -2,7 +2,7 @@ const API_URL = window.location.hostname === 'localhost'
   ? "http://localhost:3000" 
   : "";
 
-const POINTS_PER_YEAR = 2520;          // ~252 trading days × 10 ticks
+const POINTS_PER_YEAR = 2520;         
 const HORIZONS = {
   "1_Day": 10,
   "1_Month": 210,
@@ -17,13 +17,7 @@ function boxMuller() {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
-/**
- * Simulate `steps` GBM ticks returning an array of prices.
- * @param {number} price  current price
- * @param {number} mu     annualised drift (e.g. 0.12 = 12 %)
- * @param {number} sigma  annualised volatility (e.g. 0.25)
- * @param {number} steps  number of ticks
- */
+
 function gbmPath(price, mu, sigma, steps) {
   const muPP = mu / POINTS_PER_YEAR;
   const sigmaPP = sigma / Math.sqrt(POINTS_PER_YEAR);
@@ -97,7 +91,7 @@ function openSimModal(stock) {
 
   document.getElementById("simOverlay").classList.add("open");
 
-  /* Render the initial (empty) chart */
+
   _buildSimChart();
   _renderHorizonTables(stock.price, mu, sigma);
 
@@ -332,7 +326,6 @@ async function fetchSearchData(symbol) {
     const chg = open ? ((price - open) / open * 100) : 0;
     const up = chg >= 0;
 
-    /* 5 Key Parameters */
     const params = [
       { label: "P/E Ratio", val: fund?.defaultKeyStatistics?.forwardPE?.toFixed(2) || "N/A" },
       { label: "Market Cap", val: _fmtBig(fund?.defaultKeyStatistics?.marketCap) },
@@ -390,7 +383,6 @@ async function fetchSearchData(symbol) {
         </div>
       </div>`;
 
-    // Draw mini chart
     if (hist.length >= 2) _drawSearchChart(hist, up);
 
   } catch (err) {
@@ -457,7 +449,6 @@ async function addToWatchlistSearch(symbol) {
 }
 
 function searchBuy(symbol, price) {
-  /* Reuse the existing openTradeModal from dashboard.js if present */
   if (typeof openTradeModal === "function") {
     openTradeModal({ symbol, price, sector: "NSE", percentChange: 0 }, "BUY");
     document.getElementById("searchPanel").classList.remove("open");
