@@ -3,55 +3,8 @@ const API_URL = window.location.hostname === 'localhost'
   : "";
 
 /* ─── Playing Cards Init  of the simulation of the query─── */
-function initPlayingCards(onSelect) {
-  const cards = document.querySelectorAll(".playing-card");
-  if (!cards.length) return;
 
-  let current = document.querySelector(".playing-card.selected")?.dataset.timeframe || "1Y";
-
-  cards.forEach(card => {
-    card.setAttribute("tabindex", "0");
-
-    card.addEventListener("click", () => {
-      const tf = card.dataset.timeframe;
-      if (tf === current) return;
-
-      cards.forEach((c, i) => {
-        c.classList.remove("selected", "shuffle-left", "shuffle-right");
-        c.classList.add(i % 2 === 0 ? "shuffle-left" : "shuffle-right");
-        setTimeout(() => c.classList.remove("shuffle-left", "shuffle-right"), 550);
-      });
-
-      // Flip clicked card
-      card.classList.add("flipping");
-      const ripple = document.createElement("div");
-      ripple.className = "card-ripple";
-      card.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 600);
-
-      setTimeout(() => {
-        card.classList.remove("flipping");
-        cards.forEach(c => c.classList.remove("selected"));
-        card.classList.add("selected");
-      }, 700);
-
-      current = tf;
-      const labelEl = document.getElementById("currentTimeframe");
-      if (labelEl) labelEl.textContent = tf;
-
-      if (onSelect) setTimeout(() => onSelect(tf), 350);
-    });
-
-    card.addEventListener("keypress", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); card.click(); }
-    });
-
-    // Nudge neighbours on hover
-    card.addEventListener("mouseenter", () => {
-      const siblings = [...cards];
-      const idx = siblings.indexOf(card);
-      if (idx > 0) siblings[idx - 1].style.transform = "translateX(-5px) rotate(-1.5deg)";
-      if (idx < siblings.length - 1) siblings[idx + 1].style.transform = "translateX(5px) rotate(1.5deg)";
+idx + 1].style.transform = "translateX(5px) rotate(1.5deg)";
     });
     card.addEventListener("mouseleave", () => {
       cards.forEach(c => { if (!c.classList.contains("selected")) c.style.transform = ""; });
